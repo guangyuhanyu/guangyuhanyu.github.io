@@ -487,18 +487,41 @@ function afterQ(){
   nextQ();
 }
 
-/* ====== Nghe (giọng Safari) ====== */
-function zhVoice(){const v=speechSynthesis.getVoices().filter(x=>/^zh/i.test(x.lang));return v[0]||null}
+/* ====== Nghe (giọng Safari / iPhone) ====== */
+let SPK_TOK=0;
+function zhVoices(){try{return speechSynthesis.getVoices().filter(x=>/^zh/i.test(x.lang.replace('_','-')))}catch(e){return[]}}
+function zhVoice(){const v=zhVoices();return v.find(x=>/zh[-_]CN/i.test(x.lang)&&x.localService)||v.find(x=>/zh[-_]CN/i.test(x.lang))||v[0]||null}
+function spkMsg(t){let n=document.getElementById('spkmsg');if(!n){const b=document.querySelector('.spk');if(!b)return;n=document.createElement('div');n.id='spkmsg';n.className='note';n.style.cssText='margin:-2px 0 8px;color:#a33';b.insertAdjacentElement('afterend',n)}n.innerHTML=t}
 function speak(){
-  if(!('speechSynthesis' in window)){alert('Thiết bị này chưa hỗ trợ đọc tiếng Trung.');return}
-  speechSynthesis.cancel();
-  const turns=CUR.audio;const voice=zhVoice();
-  turns.forEach(([w,t])=>{
-    const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(voice)u.voice=voice;u.rate=.85;u.pitch=w=='m'?0.8:(w=='f'?1.25:1);
-    speechSynthesis.speak(u);
-  });
+  if(!('speechSynthesis' in window)){spkMsg('Trình duyệt này chưa hỗ trợ đọc tiếng Trung. Bạn thử mở bằng Safari nhé.');return}
+  const turns=(CUR.audio||[]).slice();if(!turns.length)return;
+  const tok=++SPK_TOK;
+  try{speechSynthesis.cancel()}catch(e){}
+  const go=(tries)=>{
+    if(tok!==SPK_TOK)return;
+    const voice=zhVoice();
+    if(!voice&&tries<6){setTimeout(()=>go(tries+1),250);try{speechSynthesis.getVoices()}catch(e){};return}
+    if(!voice)spkMsg('Máy chưa có giọng đọc tiếng Trung. Vào <b>Cài đặt › Trợ năng › Nội dung được đọc › Giọng nói › Tiếng Trung</b> để tải một giọng, rồi bấm loa lại.');
+    let k=0,started=false;
+    const next=()=>{
+      if(tok!==SPK_TOK||k>=turns.length)return;
+      const [w,t]=turns[k++];
+      const u=new SpeechSynthesisUtterance(t);
+      u.lang=voice?voice.lang:'zh-CN';if(voice)u.voice=voice;
+      u.rate=.85;u.volume=1;
+      if(voice){u.pitch=w=='m'?0.85:(w=='f'?1.2:1)}
+      u.onstart=()=>{started=true};
+      u.onend=()=>setTimeout(next,w=='n'?0:350);
+      u.onerror=ev=>{if(ev&&(ev.error==='interrupted'||ev.error==='canceled'))return;setTimeout(next,0)};
+      try{speechSynthesis.resume()}catch(e){}
+      speechSynthesis.speak(u);
+    };
+    next();
+    setTimeout(()=>{if(tok===SPK_TOK&&!started&&!speechSynthesis.speaking)spkMsg('Chưa nghe thấy tiếng? Bạn kiểm tra <b>công tắc im lặng</b> ở cạnh máy và tăng âm lượng, rồi bấm loa lại nhé.')},1800);
+  };
+  setTimeout(()=>go(0),120);
 }
-if('speechSynthesis' in window) speechSynthesis.onvoiceschanged=()=>{};
+if('speechSynthesis' in window){try{speechSynthesis.getVoices()}catch(e){};speechSynthesis.onvoiceschanged=()=>{}}
 
 /* ====== Dây leo rũ từ góc phải: tranh hoa của Thầy, lớn dần theo điểm ====== */
 const VINEFILE=sp=>'img/vine-'+(SPECIES[sp]?sp:'tudang')+'.webp';
