@@ -1,0 +1,12 @@
+CÀI ĐẶT MỤC ÔN LUYỆN (3 bước)
+
+1) Backend (lưu tài khoản + dây leo):
+   - Mở Google Sheet mới > Tiện ích mở rộng > Apps Script > dán toàn bộ nội dung file apps-script/Code-gs.txt > Lưu.
+   - Triển khai > Ứng dụng web > Thực thi với tư cách: Tôi; Ai có quyền truy cập: Bất kỳ ai > Triển khai.
+   - Sao chép URL dạng .../exec (bản này đã gắn sẵn URL của Thầy trong index.html).
+2) Đưa cả thư mục lên repo guangyuhanyu.github.io với tên: onluyen
+   Gồm: index.html + thư mục data/ + thư mục img/ (banner, logo).
+3) Trên trang chủ thêm nút:  <a href="onluyen/">Ôn luyện</a>
+
+Quên PIN: học viên nhắn Zalo 0358 840 411, Thầy xoá dòng tài khoản trong tab OnLuyen để tạo lại.
+Để trống API_URL = chế độ thử trên máy.

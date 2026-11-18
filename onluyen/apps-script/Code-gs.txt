@@ -1,0 +1,56 @@
+// Guangyu Hanyu - Ôn luyện: lưu tài khoản và tiến độ vào Google Sheet.
+// Dán toàn bộ vào Apps Script của Google Sheet (Tiện ích mở rộng > Apps Script), rồi Triển khai > Ứng dụng web.
+const SHEET_NAME = 'OnLuyen';
+
+function sheet_() {
+  const ss = SpreadsheetApp.getActive();
+  let sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) {
+    sh = ss.insertSheet(SHEET_NAME);
+    sh.appendRow(['user', 'hash', 'tree', 'state', 'updated']);
+  }
+  return sh;
+}
+function out_(o) {
+  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}
+function doGet() { return out_({ ok: true, msg: 'Guangyu Hanyu on luyen' }); }
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const d = JSON.parse(e.postData.contents);
+    const u = String(d.user || '').toLowerCase().trim();
+    if (!/^[a-z0-9_]{3,20}$/.test(u)) return out_({ ok: false, msg: 'Tên đăng nhập gồm 3-20 ký tự: chữ không dấu, số hoặc dấu gạch dưới.' });
+    if (!/^[a-f0-9]{64}$/.test(String(d.hash || ''))) return out_({ ok: false, msg: 'Yêu cầu không hợp lệ' });
+    const sh = sheet_();
+    const rows = sh.getDataRange().getValues();
+    let row = -1;
+    for (let i = 1; i < rows.length; i++) if (String(rows[i][0]).toLowerCase() === u) { row = i; break; }
+
+    if (d.action === 'register') {
+      if (row >= 0) return out_({ ok: false, msg: 'Tên này đã có người dùng' });
+      const tree = JSON.stringify(d.tree || {});
+      const state = JSON.stringify(d.state || {});
+      sh.appendRow([u, d.hash, tree, state, new Date()]);
+      return out_({ ok: true, tree: d.tree, state: d.state || {} });
+    }
+    if (row < 0 || String(rows[row][1]) !== d.hash) return out_({ ok: false, msg: 'Sai tên đăng nhập hoặc mã PIN' });
+    if (d.action === 'login') {
+      return out_({ ok: true, tree: JSON.parse(rows[row][2] || '{}'), state: JSON.parse(rows[row][3] || '{}') });
+    }
+    if (d.action === 'save') {
+      const s = JSON.stringify(d.state || {});
+      if (s.length > 45000) return out_({ ok: false, msg: 'Dữ liệu quá lớn' });
+      sh.getRange(row + 1, 4).setValue(s);
+      sh.getRange(row + 1, 5).setValue(new Date());
+      return out_({ ok: true });
+    }
+    return out_({ ok: false, msg: 'Yêu cầu không hợp lệ' });
+  } catch (err) {
+    return out_({ ok: false, msg: 'Lỗi: ' + err });
+  } finally {
+    lock.releaseLock();
+  }
+}
