@@ -631,6 +631,14 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
 #mua-admin textarea{width:100%;min-height:74px;border:1px solid #AEC1C6;border-radius:9px;padding:9px 10px;font:14px/1.45 'Be Vietnam Pro',system-ui,sans-serif;margin-bottom:6px;background:#fff;resize:vertical}
 #mua-admin label{display:block;font-size:12.5px;color:#5D6F73;margin:2px 0 4px}
 #mua-admin .row2{display:flex;gap:8px}
+#mua-admin .stbox{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+#mua-admin .stbox div{background:#fff;border:1px solid #D6C997;border-radius:9px;padding:6px 8px;font-size:12px;color:#5D6F73}
+#mua-admin .stbox b{display:block;font:700 17px 'Lora',Georgia,serif;color:#425961}
+#mua-admin .stbox em{font-style:normal;font-size:11.5px}
+#mua-admin .bars{display:flex;align-items:flex-end;gap:3px;height:54px;margin:6px 0 2px}
+#mua-admin .bars i{flex:1;background:#8FA7AE;border-radius:3px 3px 0 0;min-height:2px;position:relative}
+#mua-admin .bars i:last-child{background:#CF3D2F}
+#mua-admin .barl{display:flex;justify-content:space-between;font-size:10.5px;color:#7a8a8e}
 #mua-admin .row2 button{flex:1;border:1px solid #AEC1C6;background:#fff;border-radius:9px;padding:9px 6px;font:600 13px 'Be Vietnam Pro',system-ui,sans-serif;color:#425961;cursor:pointer}
 #mua-admin .row2 button.pri{background:#425961;color:#fff;border-color:#425961}
 
@@ -652,6 +660,9 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
   <label for="mua-nu">Hiện đến hết ngày (bỏ trống nếu muốn hiện mãi)</label>
   <input id="mua-nu" type="date">
   <div class="row2"><button type="button" class="pri" id="mua-nsave">Lưu thông báo</button><button type="button" id="mua-nclr">Xóa thông báo</button></div>
+  <h5>Lượt truy cập</h5>
+  <div class="row2"><button type="button" class="pri" id="mua-stbtn">Xem lượt truy cập</button></div>
+  <div id="mua-stat"></div>
   <div class="st" id="mua-st"></div>
 </div>
 <script>
@@ -946,6 +957,37 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
   }
   document.getElementById('mua-nsave').onclick=()=>postNotice(nt.value.trim().slice(0,240),nu.value||'');
   document.getElementById('mua-nclr').onclick=()=>{nt.value='';nu.value='';postNotice('','')};
+  /* ---------- thống kê lượt truy cập (chỉ Thầy xem được, cần mật khẩu) ---------- */
+  const stEl=document.getElementById('mua-stat');
+  function rStat(d){
+    const f=n=>Number(n||0).toLocaleString('vi-VN');
+    const box=(t,o)=>'<div>'+t+'<b>'+f(o.v)+'</b><em>'+f(o.u)+' người</em></div>';
+    const mx=Math.max(1,...d.days.map(x=>x.v));
+    stEl.innerHTML='<div class="stbox">'+box('Hôm nay',d.today)+box('7 ngày qua',d.d7)+box('30 ngày qua',d.d30)+box('Tổng cộng',d.total)+'</div>'
+      +'<div class="bars">'+d.days.map(x=>'<i style="height:'+Math.max(4,Math.round(x.v/mx*100))+'%" title="'+x.d+': '+x.v+' lượt, '+x.u+' người"></i>').join('')+'</div>'
+      +'<div class="barl"><span>'+d.days[0].d.slice(5).split('-').reverse().join('/')+'</span><span>14 ngày gần nhất</span><span>nay</span></div>'
+      +'<p style="margin-top:6px">Số lớn là lượt xem trang; “người” đếm theo từng trình duyệt (một người dùng 2 máy tính là 2). Lượt của Thầy trên máy này không bị tính.</p>';
+  }
+  document.getElementById('mua-stbtn').onclick=async()=>{
+    if(!pin.value){st.style.color='#a33';st.textContent='Thầy nhập mật khẩu trước nhé.';return}
+    st.style.color='#5D6F73';st.textContent='Đang lấy số liệu…';
+    try{
+      const r=await fetch(API,{method:'POST',body:JSON.stringify({action:'stats',pin:pin.value})});
+      const d=await r.json();
+      if(d&&d.ok){LS('gy_me','1');st.textContent='';rStat(d)}
+      else{st.style.color='#a33';st.textContent=(d&&d.msg)||'Chưa lấy được số liệu.'}
+    }catch(e){st.style.color='#a33';st.textContent='Chưa lấy được (Apps Script chưa cập nhật bản mới?).'}
+  };
+  /* đếm lượt truy cập: mỗi người tối đa 1 lần / 30 phút, bỏ qua máy của Thầy và các lần xem thử */
+  try{
+    const test=/[?&](mua|ngay)=/.test(location.search)||location.hash==='#admin'||!/^https?:$/.test(location.protocol)||/^(localhost|127\.)/.test(location.hostname);
+    const now=Date.now(),last=+(LS('gy_hit')||0);
+    if(!test&&LS('gy_me')!=='1'&&now-last>30*60*1000){
+      let vid=LS('gy_vid');if(!vid){vid=Math.random().toString(36).slice(2,8)+now.toString(36).slice(-6);LS('gy_vid',vid)}
+      LS('gy_hit',String(now));
+      fetch(API,{method:'POST',mode:'no-cors',keepalive:true,body:JSON.stringify({action:'hit',vid,page:'home'})}).catch(()=>{});
+    }
+  }catch(e){}
   /* mở bảng: chạm logo 5 lần liên tiếp, hoặc thêm #admin vào địa chỉ */
   let taps=[];
   const logo=document.querySelector('header.bar a[href="#top"]');
