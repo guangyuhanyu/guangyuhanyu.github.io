@@ -268,7 +268,29 @@ function screenAuth(tab){
    <div class="msg" id="msg"></div>
    <div class="row" style="margin-top:6px"><button class="btn main" id="go" onclick="${tab=='reg'?'doReg()':'doLogin()'}">${tab=='reg'?'Tạo tài khoản và trồng hoa':'Vào ôn luyện'}</button>
    <button class="btn alt" onclick="startGuest()">Làm thử 5 câu</button></div>
-   <p class="note" style="margin-top:12px">Quên mã PIN: anh/chị/bạn nhắn Zalo cho Thầy (0358 840 411) để được đặt lại.</p><img class="scroll" src="img/cuon-tranh.webp" alt=""></div>`+footer();
+   ${tab=='login'?`<p class="note" style="margin-top:12px"><a href="#" class="link" onclick="forgotPin();return false">Quên mã PIN?</a></p><div id="fp"></div>`:`<p class="note" style="margin-top:12px">Nhớ kỹ tên đăng nhập và mã PIN nhé. Quên PIN thì nhắn Zalo cho Thầy (0358 840 411) để được đặt lại.</p>`}<img class="scroll" src="img/cuon-tranh.webp" alt=""></div>`+footer();
+}
+function forgotPin(){
+  const u=($('#u').value||'').trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
+  $('#fp').innerHTML=`<div style="margin-top:10px;padding:12px 14px;border:1px solid #D6C997;border-radius:12px;background:rgba(255,252,242,.7)">
+   <b style="font-size:14px">Đặt lại mã PIN</b>
+   <p class="note" style="margin:4px 0 8px">Thầy sẽ đặt lại giúp, điểm và dây hoa của bạn vẫn còn nguyên. Nhập tên đăng nhập rồi bấm gửi cho Thầy qua Zalo.</p>
+   <input id="fu" type="text" autocapitalize="none" maxlength="20" placeholder="Tên đăng nhập" value="${u}">
+   <div class="row" style="margin-top:8px"><button class="btn main" onclick="sendPin()">Nhắn Thầy qua Zalo</button></div>
+   <div class="msg" id="fpm" style="margin-top:6px"></div>
+   <p class="note" style="margin-top:6px">Khi Thầy báo đã đặt lại, bạn đăng nhập bằng tên cũ và <b>mã PIN mới tự chọn</b> (4-6 chữ số).</p></div>`;
+  const f=$('#fu');if(f&&!u)f.focus();
+}
+async function sendPin(){
+  const u=($('#fu').value||'').trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
+  if(u.length<3){$('#fpm').textContent='Nhập tên đăng nhập của bạn (3-20 ký tự).';return}
+  const msg='Chào Thầy, em quên mã PIN Ôn luyện. Tên đăng nhập của em: '+u+'. Nhờ Thầy đặt lại giúp em ạ.';
+  let ok=false;
+  try{await navigator.clipboard.writeText(msg);ok=true}catch(e){
+    try{const t=document.createElement('textarea');t.value=msg;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();ok=document.execCommand('copy');t.remove()}catch(e2){}
+  }
+  $('#fpm').textContent=ok?'Đã sao chép tin nhắn. Mở Zalo, dán vào và gửi cho Thầy nhé.':'Bạn nhắn Zalo cho Thầy (0358 840 411) kèm tên đăng nhập: '+u;
+  setTimeout(()=>{window.open('https://zalo.me/84358840411','_blank')},600);
 }
 function footer(){return `<div class="card foot"><img src="img/logo-sang.webp" alt="Guangyu Hanyu · Tiếng Trung cùng Guangyu Laoshi"><p class="fct">Zalo 0358 840 411 · guangyuhanyu@gmail.com</p><a class="link" href="../">← Về trang chủ</a></div>`}
 function treePicker(){
