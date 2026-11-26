@@ -59,7 +59,9 @@ var IFR=false,PDOC=null;try{IFR=window.parent!==window;PDOC=IFR?window.parent.do
 var DE=document.documentElement,NS='http://www.w3.org/2000/svg';
 var DECK=document.getElementById('deck');
 var root=null;
-if(!DECK){var cand=document.querySelectorAll('.lesson,.wrap,.app,#app,.page,main'),ba=0;
+if(!DECK){var cand=[].slice.call(document.querySelectorAll('.gy-root,.lesson,.wrap,.app,#app,.page,main,.bai,.gy-khung,.box')),ba=0;
+ /* trang lạ: thêm các khối lớn nằm thẳng trong body (bỏ nền cố định) */
+ [].slice.call(document.body.children).forEach(function(e){if(/^(SCRIPT|STYLE|LINK|TEMPLATE)$/.test(e.tagName))return;var ps=getComputedStyle(e).position;if(ps==='fixed'||ps==='absolute')return;if(cand.indexOf(e)<0)cand.push(e);});
  for(var ci=0;ci<cand.length;ci++){var ce=cand[ci],ar=ce.offsetWidth*ce.offsetHeight;if(ar>ba*1.05){ba=ar;root=ce;}}}
 if(!DECK&&!root)return;
 var st=document.createElement('style');st.id='gy-tools-css';st.textContent=CSS;(document.head||DE).appendChild(st);
@@ -160,7 +162,7 @@ function exit(){
  var fix=function(){window.scrollTo(0,Math.max(0,rootTop()+anchor));};fix();setTimeout(fix,250);
 }
 function quit(){
- if(IFR&&PDOC){var fv=PDOC.querySelector('.fov');if(fv){on=false;try{window.parent.focus();}catch(e){}var cb=fv.querySelector('button');if(cb)cb.click();return true;}}
+ if(IFR&&PDOC){var fv=PDOC.querySelector('.fov,.gy-ov');if(fv){on=false;try{window.parent.focus();}catch(e){}var cb=fv.querySelector('.gy-ovx')||fv.querySelector('button');if(cb)cb.click();return true;}}
  if(on){exit();return true;}
  return false;
 }
@@ -284,7 +286,7 @@ function clearAll(){
  if(Date.now()-clrArm>2500){clrArm=Date.now();say('Nhấn X lần nữa để xóa hết ghi chú'+(DECK?' của slide này':''));return;}
  clrArm=0;act({k:'c',S:s.S.slice(),N:s.N.slice(),s:s});s.S=[];s.N=[];render(s);say('Đã xóa · Z để lấy lại');
 }
-function pyBtn(){return document.querySelector('.lesson [data-py],.wrap [data-py]')||document.getElementById('pyBtn')||document.getElementById('tp');}
+function pyBtn(){return document.querySelector('.lesson [data-py],.wrap [data-py],[data-bai="py"]')||document.getElementById('pyBtn')||document.getElementById('gy-pyt')||document.getElementById('tp');}
 function togglePy(){var b=pyBtn();if(b){b.click();return true;}return false;}
 function zoomBy(f){zAdj=f===0?1:Math.max(0.5,Math.min(2,zAdj*f));fit();say('Cỡ chiếu '+Math.round(zAdj*100)+'%');}
 function sizeBy(f){mul=Math.max(0.4,Math.min(3,mul*f));if(tool==='hand'||tool==='er')setTool('pen');state();}
@@ -376,7 +378,7 @@ bar.addEventListener('click',function(e){
 });
 bar.addEventListener('pointerdown',function(e){if(e.target.closest('.sw'))e.preventDefault();});
 addEventListener('keydown',function(e){
- var fov=document.querySelector('.fov');
+ var fov=document.querySelector('.fov,.gy-ov');
  if(fov){var fr=fov.querySelector('iframe');try{if(fr)fr.contentWindow.focus();}catch(_){}return;}
  var t=e.target;
  if(t&&t.classList&&t.classList.contains('gyNt')){e.stopPropagation();if(e.key==='Escape'){e.preventDefault();t.blur();}return;}
