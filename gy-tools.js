@@ -1,4 +1,4 @@
-/*! gy-tools.js v5 · Công cụ giáo viên Guangyu Hanyu (dùng chung mọi quyển: q1…, h1–h4…)
+/*! gy-tools.js v6.1 · Công cụ giáo viên Guangyu Hanyu (dùng chung mọi quyển: q1…, h1–h4…)
  * Bút · dạ quang · tẩy · ô chữ (có pinyin) · dấu ✓ ✗ · trình chiếu phóng to · tải PDF · mở bảng trắng.
  * Đặt tại https://guangyuhanyu.github.io/gy-tools.js (cùng gy-pinyin.js). Chỉ chạy trên máy đã bật ?gv=1.
  * Sửa công cụ = chỉ cần up lại file này.
@@ -47,6 +47,7 @@ var CSS=[
 '#gyHelp h4{margin:0 0 8px;font:700 18px "Be Vietnam Pro",sans-serif;color:#2a5d76}#gyHelp table{border-collapse:collapse}#gyHelp td{padding:3px 10px;vertical-align:top}',
 '#gyHelp kbd{display:inline-block;min-width:22px;text-align:center;padding:1px 6px;border:1px solid #b8a98c;border-bottom-width:2px;border-radius:5px;background:#fff;font:600 13px/1.4 system-ui;margin:0 1px}',
 '#gyHelp .ft{margin-top:8px;font-size:13px;color:#6b5f55}',
+'#gyLz{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:8990;pointer-events:none;display:none}html.gyT-lz #gyLz{display:block}html.gyT-lz,html.gyT-lz *{cursor:none!important}',
 '@media print{#gyBar,#gyTip,#gyHelp,#gyWm{display:none!important}html.gyT,html.gyT body{overflow:visible!important}.gyZoom{transform:none!important}.gyPR{zoom:var(--gyPZ,1);overflow:clip!important}html.gyT,html.gyT *{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{margin:10mm}}'
 ].join('\n');
 
@@ -67,12 +68,13 @@ if(!DECK&&!root)return;
 var st=document.createElement('style');st.id='gy-tools-css';st.textContent=CSS;(document.head||DE).appendChild(st);
 DE.classList.add('gyT');
 
-var on=false,fsUsed=false,zAdj=1,tool='hand',penC='#a83a2c',hlC='#d9a62e',szI=1,mul=1;
+var on=false,fsUsed=false,zAdj=1,tool='hand',penC='#e53935',hlC='#ffe14d',lzC='#e53935',szI=1,mul=1;
 var PEN=[2,3.5,6],HLW=[12,18,26],FS=[18,26,36],STP=[20,28,38];
-var COLORS=['#a83a2c','#2a5d76','#2c241f','#3f6b52','#c8961e','#b5522a'];
-var CN=['son đỏ','lam','mực tàu','lục trúc','hoàng thổ','cam đất'],SN=['nhỏ','vừa','to'];
-var OKC='#3f6b52',NOC='#a83a2c';
-var TN={hand:'Con trỏ',pen:'Bút',hl:'Dạ quang',er:'Tẩy',tx:'Ô chữ',ok:'Dấu ✓ đúng',no:'Dấu ✗ sai'};
+var COLORS=['#e53935','#1e88e5','#222222','#2eaa4a','#d81b60','#fb8c00'];
+var CN=['đỏ tươi','xanh dương','đen','xanh lá','hồng cánh sen','cam'],SN=['nhỏ','vừa','to'];
+var HLC=['#ffe14d','#ff9ec7','#8ef0c8','#8fd3ff','#ffc29a','#c9a7ff'],HN=['vàng chanh','hồng phấn','xanh bạc hà','xanh da trời','cam đào','tím oải hương'];
+var OKC='#2eaa4a',NOC='#e53935';
+var TN={hand:'Con trỏ',pen:'Bút',hl:'Dạ quang',er:'Tẩy',tx:'Ô chữ',ok:'Dấu ✓ đúng',no:'Dấu ✗ sai',lz:'Bút laze'};
 var SURF=[],U=[],RD=[];
 
 /* ---------- mặt vẽ: bài cuộn = 1 mặt; bài slide = mỗi slide 1 mặt ---------- */
@@ -113,12 +115,13 @@ function say(t,ms){tip.textContent=t;tip.style.display='block';clearTimeout(say.
 var help=document.createElement('div');help.id='gyHelp';
 var own=DECK?'<b>Phím của bài giảng (giữ như cũ):</b> <kbd>←</kbd><kbd>→</kbd> chuyển slide · <kbd>F</kbd> toàn màn hình · <kbd>P</kbd> pinyin · <kbd>T</kbd> thanh điệu / đồng hồ · <kbd>N</kbd> nghĩa · <kbd>L</kbd> danh sách từ. Ghi chú gắn theo từng slide.'
  :'<kbd>F</kbd> trình chiếu phóng to (nhấn lại để thôi) · <kbd>+</kbd><kbd>−</kbd><kbd>0</kbd> cỡ chiếu · <kbd>P</kbd> pinyin cả bài.';
-help.innerHTML='<div class="bx"><h4>Phím tắt của Thầy <span style="font:500 12px system-ui;color:#8a7b6b">· gy-tools v5</span></h4><table>'+
+help.innerHTML='<div class="bx"><h4>Phím tắt của Thầy <span style="font:500 12px system-ui;color:#8a7b6b">· gy-tools v6</span></h4><table>'+
 '<tr><td><kbd>V</kbd></td><td>Con trỏ (bấm, làm bài)</td><td><kbd>B</kbd></td><td>Bút</td></tr>'+
 '<tr><td><kbd>H</kbd></td><td>Bút dạ quang</td><td><kbd>E</kbd></td><td>Tẩy (chạm vào nét để xóa)</td></tr>'+
 '<tr><td><kbd>G</kbd></td><td>Ô chữ (bấm chỗ muốn gõ)</td><td><kbd>D</kbd> / <kbd>S</kbd></td><td>Đóng dấu ✓ đúng / ✗ sai</td></tr>'+
-'<tr><td><kbd>1</kbd>–<kbd>6</kbd></td><td>Màu: son đỏ · lam · mực tàu · lục trúc · hoàng thổ · cam đất</td><td><kbd>7</kbd><kbd>8</kbd><kbd>9</kbd> <kbd>[</kbd><kbd>]</kbd></td><td>Cỡ nhỏ · vừa · to · nhỏ dần / to dần</td></tr>'+
-'<tr><td><kbd>Y</kbd></td><td>Pinyin trên chữ Hán Thầy gõ</td><td><kbd>W</kbd></td><td>Mở bảng trắng (tab mới)</td></tr>'+
+'<tr><td><kbd>1</kbd>–<kbd>6</kbd></td><td>Màu bút: đỏ · xanh dương · đen · xanh lá · hồng · cam (dạ quang: vàng · hồng · bạc hà · da trời · đào · tím)</td><td><kbd>7</kbd><kbd>8</kbd><kbd>9</kbd> <kbd>[</kbd><kbd>]</kbd></td><td>Cỡ nhỏ · vừa · to · nhỏ dần / to dần</td></tr>'+
+'<tr><td><kbd>R</kbd></td><td>Bút laze (chỉ cho học viên xem, không để lại dấu)</td><td><kbd>Y</kbd></td><td>Pinyin trên chữ Hán Thầy gõ</td></tr>'+
+'<tr><td><kbd>W</kbd></td><td>Mở bảng trắng (tab mới)</td><td></td><td></td></tr>'+
 '<tr><td><kbd>Z</kbd> · <kbd>⇧</kbd><kbd>Z</kbd></td><td>Hoàn tác · làm lại</td><td><kbd>X</kbd> ×2</td><td>Xóa hết ghi chú '+(DECK?'của slide đang xem':'của bài')+'</td></tr>'+
 '<tr><td><kbd>K</kbd></td><td>Tải bài kèm ghi chú (lưu PDF)</td><td><kbd>M</kbd></td><td>Hiện / ẩn thanh công cụ</td></tr>'+
 '<tr><td><kbd>Esc</kbd></td><td>Về con trỏ'+(DECK?'':' · nhấn lần nữa: thôi chiếu')+'</td><td><kbd>?</kbd></td><td>Mở / đóng bảng này</td></tr>'+
@@ -127,7 +130,7 @@ document.body.appendChild(help);help.addEventListener('click',function(){help.cl
 var bar=document.createElement('div');bar.id='gyBar';
 var h='';
 if(!DECK)h+='<button type="button" data-a="pres" title="Trình chiếu (F)">🖥</button><span class="sep"></span>';
-h+='<button type="button" data-t="hand" title="Con trỏ (V)">👆</button><button type="button" data-t="pen" title="Bút (B)">✏️</button><button type="button" data-t="hl" title="Dạ quang (H)">🖍️</button><button type="button" data-t="er" title="Tẩy (E)">🧽</button><button type="button" data-t="tx" title="Ô chữ (G)"><b style="font:700 17px Lora,serif">T</b></button><button type="button" class="okb" data-t="ok" title="Dấu đúng (D)">✓</button><button type="button" class="nob" data-t="no" title="Dấu sai (S)">✗</button><span class="sep"></span>';
+h+='<button type="button" data-t="hand" title="Con trỏ (V)">👆</button><button type="button" data-t="pen" title="Bút (B)">✏️</button><button type="button" data-t="hl" title="Dạ quang (H)">🖍️</button><button type="button" data-t="er" title="Tẩy (E)">🧽</button><button type="button" data-t="tx" title="Ô chữ (G)"><b style="font:700 17px Lora,serif">T</b></button><button type="button" class="okb" data-t="ok" title="Dấu đúng (D)">✓</button><button type="button" class="nob" data-t="no" title="Dấu sai (S)">✗</button><button type="button" data-t="lz" title="Bút laze (R)">🔴</button><span class="sep"></span>';
 COLORS.forEach(function(c){h+='<button type="button" class="sw" data-c="'+c+'" style="background:'+c+'" title="Màu"></button>';});
 h+='<span class="sep"></span>';
 [6,9,13].forEach(function(d,i){h+='<button type="button" class="sz" data-s="'+i+'" title="Cỡ (7 8 9)"><i style="width:'+d+'px;height:'+d+'px"></i></button>';});
@@ -174,13 +177,14 @@ document.addEventListener('fullscreenchange',onFs);document.addEventListener('we
 function setTool(t){
  tool=t;
  DE.className=DE.className.replace(/\bgyT-\w+\b/g,'').replace(/\bgyAct\b/g,'').trim();
- if(t!=='hand'){DE.classList.add('gyAct');DE.classList.add('gyT-'+t);ensure();}
+ if(t!=='hand'&&t!=='lz'){DE.classList.add('gyAct');ensure();}if(t!=='hand')DE.classList.add('gyT-'+t);
+ laserOn(t==='lz');
  var bs=bar.querySelectorAll('[data-t]');for(var i=0;i<bs.length;i++)bs[i].classList.toggle('on',bs[i].getAttribute('data-t')===t);
- var c=(t==='hl')?hlC:penC;
- var sw=bar.querySelectorAll('.sw');for(var j=0;j<sw.length;j++)sw[j].classList.toggle('on',/^(pen|hl|tx)$/.test(t)&&sw[j].getAttribute('data-c')===c);
+ var pal=(t==='hl')?HLC:COLORS,c=(t==='hl')?hlC:(t==='lz'?lzC:penC);
+ var sw=bar.querySelectorAll('.sw');for(var j=0;j<sw.length;j++){sw[j].style.background=pal[j];sw[j].setAttribute('data-c',pal[j]);sw[j].classList.toggle('on',/^(pen|hl|tx|lz)$/.test(t)&&pal[j]===c);}
  var sz=bar.querySelectorAll('.sz');for(var k=0;k<sz.length;k++)sz[k].classList.toggle('on',+sz[k].getAttribute('data-s')===szI);
 }
-function state(){var c=tool==='hl'?hlC:penC,t=TN[tool];if(/^(pen|hl|tx)$/.test(tool))t+=' · '+(CN[COLORS.indexOf(c)]||'');if(tool!=='hand'&&tool!=='er')t+=' · cỡ '+SN[szI]+(mul!==1?' '+Math.round(mul*100)+'%':'');say(t);}
+function state(){var t=TN[tool];if(tool==='hl')t+=' · '+(HN[HLC.indexOf(hlC)]||'');else if(/^(pen|tx)$/.test(tool))t+=' · '+(CN[COLORS.indexOf(penC)]||'');else if(tool==='lz')t+=' · '+(CN[COLORS.indexOf(lzC)]||'');if(!/^(hand|er|lz)$/.test(tool))t+=' · cỡ '+SN[szI]+(mul!==1?' '+Math.round(mul*100)+'%':'');say(t);}
 function zOf(s){var w=s.ink.offsetWidth;return w?(s.ink.getBoundingClientRect().width/w)||1:1;}
 function sz(a,s){return a[szI]*mul/zOf(s);}
 function pt(e,s){var r=s.ink.getBoundingClientRect(),z=r.width/(s.ink.offsetWidth||1)||1;return{x:(e.clientX-r.left)/z,y:(e.clientY-r.top)/z};}
@@ -218,21 +222,25 @@ function bindInk(s){
   try{L.setPointerCapture(e.pointerId);}catch(_){}
   dS=s;
   if(tool==='er'){drawing={er:true,rm:[]};erase(pt(e,s),s);return;}
-  var o2={c:tool==='hl'?hlC:penC,w:sz(tool==='hl'?HLW:PEN,s),o:tool==='hl'?0.38:1,p:[pt(e,s)]};
+  var o2={c:tool==='hl'?hlC:penC,w:sz(tool==='hl'?HLW:PEN,s),o:tool==='hl'?0.5:1,p:[pt(e,s)]};
   drawing=o2;s.G.appendChild(mkPath(o2));
+  o2.cx=e.clientX;o2.cy=e.clientY;armHold(o2,s);
  });
  L.addEventListener('pointermove',function(e){
   if(!drawing||dS!==s)return;
   if(drawing.er){erase(pt(e,s),s);return;}
+  if(drawing.line){drawing.p[1]=snapEnd(drawing.p[0],pt(e,s));drawing.node.setAttribute('d',pathD(drawing.p));return;}
+  if(Math.abs(e.clientX-drawing.cx)+Math.abs(e.clientY-drawing.cy)>4){drawing.cx=e.clientX;drawing.cy=e.clientY;armHold(drawing,s);}
   var evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];if(!evs.length)evs=[e];var z=zOf(s);
   for(var i=0;i<evs.length;i++){var q=pt(evs[i],s),l=drawing.p[drawing.p.length-1];if(Math.abs(q.x-l.x)+Math.abs(q.y-l.y)>0.6/z)drawing.p.push(q);}
   drawing.node.setAttribute('d',pathD(drawing.p));
  });
  var end=function(){
   if(!drawing||dS!==s)return;
+  clearTimeout(drawing.ht);
   if(drawing.er){if(drawing.rm.length)act({k:'e',l:drawing.rm,s:s});}
   else{
-   if(tool==='hl'&&drawing.p.length>2){var a=drawing.p[0],b=drawing.p[drawing.p.length-1],dx=b.x-a.x,dy=b.y-a.y,len=Math.sqrt(dx*dx+dy*dy)||1,mx=0;
+   if(tool==='hl'&&!drawing.line&&drawing.p.length>2){var a=drawing.p[0],b=drawing.p[drawing.p.length-1],dx=b.x-a.x,dy=b.y-a.y,len=Math.sqrt(dx*dx+dy*dy)||1,mx=0;
     drawing.p.forEach(function(q){var dd=Math.abs((q.x-a.x)*dy-(q.y-a.y)*dx)/len;if(dd>mx)mx=dd;});
     if(mx<6/zOf(s)&&Math.abs(dy)<Math.abs(dx)*0.25){drawing.p=[a,{x:b.x,y:a.y}];drawing.node.setAttribute('d',pathD(drawing.p));}}
    s.S.push(drawing);act({k:'s',o:drawing,s:s});
@@ -243,6 +251,15 @@ function bindInk(s){
  /* đang dùng công cụ: không để cú bấm/kéo lọt xuống bài (tránh bài tự chuyển slide) */
  ['click','dblclick','mousedown','mouseup','pointerup','pointermove','touchstart','touchend'].forEach(function(ev){L.addEventListener(ev,function(e){if(tool!=='hand')e.stopPropagation();});});
 }
+/* giữ yên tay ~0,6 giây khi đang kẻ → nét thành đường thẳng (gần ngang/dọc thì nắn thẳng hẳn) */
+function snapEnd(a,b){var dx=b.x-a.x,dy=b.y-a.y,ang=Math.atan2(Math.abs(dy),Math.abs(dx))*180/Math.PI;
+ if(ang<7)return{x:b.x,y:a.y};if(ang>83)return{x:a.x,y:b.y};return b;}
+function armHold(o,s){clearTimeout(o.ht);o.ht=setTimeout(function(){
+ if(drawing!==o||o.line||o.p.length<3)return;
+ var a=o.p[0],b=o.p[o.p.length-1];if(Math.abs(b.x-a.x)+Math.abs(b.y-a.y)<12/zOf(s))return;
+ o.line=true;o.p=[a,snapEnd(a,b)];o.node.setAttribute('d',pathD(o.p));
+ o.node.style.transition='stroke-width .12s';var w=o.w;o.node.setAttribute('stroke-width',w*1.5);setTimeout(function(){o.node.setAttribute('stroke-width',w);},120);
+},600);}
 function erase(q,s){
  var rz=10/zOf(s);
  for(var i=s.S.length-1;i>=0;i--){var o=s.S[i],r=o.w/2+rz,hit=false;
@@ -288,9 +305,33 @@ function clearAll(){
 }
 function pyBtn(){return document.querySelector('.lesson [data-py],.wrap [data-py],[data-bai="py"]')||document.getElementById('pyBtn')||document.getElementById('gy-pyt')||document.getElementById('tp');}
 function togglePy(){var b=pyBtn();if(b){b.click();return true;}return false;}
+function pickColor(i){if(i<0)return;if(tool==='hl')hlC=HLC[i];else if(tool==='lz')lzC=COLORS[i];else{penC=COLORS[i];if(!/^(pen|tx)$/.test(tool))tool='pen';}setTool(tool);}
 function zoomBy(f){zAdj=f===0?1:Math.max(0.5,Math.min(2,zAdj*f));fit();say('Cỡ chiếu '+Math.round(zAdj*100)+'%');}
 function sizeBy(f){mul=Math.max(0.4,Math.min(3,mul*f));if(tool==='hand'||tool==='er')setTool('pen');state();}
 function openBoard(){var w=null;try{w=window.open(BOARD_URL,'gy-bangtrang');}catch(e){}if(w){try{w.focus();}catch(e){}}else say('Safari chặn mở tab – Thầy cho phép cửa sổ bật lên giúp em');}
+
+/* ---------- bút laze: chấm đỏ phát sáng + vệt mờ dần, không lưu lại ---------- */
+var lzCv=document.createElement('canvas');lzCv.id='gyLz';document.body.appendChild(lzCv);
+var lzX=lzCv.getContext('2d'),lzP=[],lzRun=false,lzIn=false,lzL=null,LZT=650;
+function lzSize(){var d=window.devicePixelRatio||1;lzCv.width=innerWidth*d;lzCv.height=innerHeight*d;lzX.setTransform(d,0,0,d,0,0);}
+function hexA(h,a){var n=parseInt(h.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
+function lzDraw(){
+ var now=performance.now();lzX.clearRect(0,0,innerWidth,innerHeight);
+ while(lzP.length&&now-lzP[0].t>LZT)lzP.shift();
+ lzX.lineCap='round';lzX.lineJoin='round';
+ for(var i=1;i<lzP.length;i++){var a=lzP[i-1],b=lzP[i],k=1-(now-b.t)/LZT;if(k<=0)continue;
+  lzX.strokeStyle=hexA(lzC,0.55*k);lzX.lineWidth=2+6*k;lzX.beginPath();lzX.moveTo(a.x,a.y);lzX.lineTo(b.x,b.y);lzX.stroke();}
+ var h=lzL;
+ if(h&&lzIn){var g=lzX.createRadialGradient(h.x,h.y,0,h.x,h.y,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(0.22,'rgba(255,255,255,0.95)');g.addColorStop(0.35,hexA(lzC,0.95));g.addColorStop(1,hexA(lzC,0));
+  lzX.fillStyle=g;lzX.beginPath();lzX.arc(h.x,h.y,16,0,Math.PI*2);lzX.fill();}
+ if(tool==='lz'&&lzP.length>1){requestAnimationFrame(lzDraw);}else{lzRun=false;if(!lzIn||tool!=='lz')lzX.clearRect(0,0,innerWidth,innerHeight);}
+}
+function lzKick(){if(!lzRun){lzRun=true;requestAnimationFrame(lzDraw);}}
+function laserOn(v){if(v){lzSize();lzKick();}else{lzP=[];lzL=null;lzX.clearRect(0,0,innerWidth,innerHeight);}}
+addEventListener('pointermove',function(e){if(tool!=='lz')return;lzIn=true;lzL={x:e.clientX,y:e.clientY};lzP.push({x:e.clientX,y:e.clientY,t:performance.now()});if(lzP.length>120)lzP.shift();lzKick();},true);
+document.addEventListener('pointerleave',function(){lzIn=false;});
+document.documentElement.addEventListener('mouseleave',function(){lzIn=false;lzKick();});
+addEventListener('resize',function(){if(tool==='lz')lzSize();});
 
 /* ---------- pinyin cho chữ Thầy gõ ---------- */
 var NPY=false,PYD=null,pyQ=null;
@@ -368,8 +409,8 @@ function download(){
 bar.addEventListener('click',function(e){
  var b=e.target.closest('button');if(!b)return;
  if(b.hasAttribute('data-t')){setTool(b.getAttribute('data-t'));return;}
- if(b.hasAttribute('data-c')){var c=b.getAttribute('data-c');if(tool==='hl')hlC=c;else{penC=c;if(!/^(pen|tx)$/.test(tool))tool='pen';}setTool(tool);
-  var ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('gyNt'))ae.style.color=c;return;}
+ if(b.hasAttribute('data-c')){var sws=[].slice.call(bar.querySelectorAll('.sw'));pickColor(sws.indexOf(b));
+  var ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('gyNt'))ae.style.color=penC;return;}
  if(b.hasAttribute('data-s')){szI=+b.getAttribute('data-s');mul=1;if(tool==='hand'||tool==='er')tool='pen';setTool(tool);return;}
  var a=b.getAttribute('data-a');
  if(a==='pres'){on?exit():enter();}else if(a==='undo')undo();else if(a==='redo')redo();else if(a==='clear')clearAll();
@@ -395,6 +436,7 @@ addEventListener('keydown',function(e){
   case 'g':setTool('tx');state();break;
   case 'd':setTool('ok');state();break;
   case 's':setTool('no');state();break;
+  case 'r':setTool(tool==='lz'?'hand':'lz');state();break;
   case 'y':toggleNotePy();break;
   case 'w':openBoard();break;
   case 'k':download();break;
@@ -413,7 +455,7 @@ addEventListener('keydown',function(e){
    else if(!quit())done=false;
    break;
   default:
-   if(/^[1-6]$/.test(k)){c=COLORS[+k-1];if(tool==='hl')hlC=c;else{penC=c;if(!/^(pen|tx)$/.test(tool))tool='pen';}setTool(tool);state();}
+   if(/^[1-6]$/.test(k)){pickColor(+k-1);state();}
    else if(/^[7-9]$/.test(k)){szI=+k-7;mul=1;if(tool==='hand'||tool==='er')tool='pen';setTool(tool);state();}
    else done=false;
  }
