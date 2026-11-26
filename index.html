@@ -569,6 +569,8 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
 </script>
 <!-- ===== HIỆU ỨNG THEO MÙA (tuyết, hoa đào, lá xanh, lá vàng). Chỉ Thầy đổi được: chạm logo 5 lần ===== -->
 <style>
+/* bàn thấp sang cột phải, ngay dưới phong linh */
+@media (min-width:901px){.hero .inner{grid-template-areas:"intro stage" "intro desk";grid-template-rows:auto 1fr;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr)}.hero .intro{align-self:start}.hero .desk{justify-self:center;width:min(275px,100%);margin-top:-66px}.intro #mua-board{width:min(600px,100%);font-size:17px}}
 /* kéo nội dung đầu trang lên cho gọn khoảng trống phía trên 千里之行 */
 .hero .inner{padding-top:30px}.intro{padding-top:10px}
 @media (max-width:900px){.hero .inner{padding-top:20px}.intro{padding-top:0}}
@@ -807,7 +809,7 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
   const strip=document.createElement('div');strip.id='mua-strip';strip.hidden=true;
   const hdr=document.querySelector('header.bar');if(hdr)hdr.insertAdjacentElement('afterend',strip);
   const board=document.createElement('aside');board.id='mua-board';board.hidden=true;board.setAttribute('aria-label','Thông báo');
-  const h1b=document.querySelector('.hero h1');if(h1b)h1b.insertAdjacentElement('afterend',board);
+  const h1b=document.querySelector('.hero .lead')||document.querySelector('.hero h1');if(h1b)h1b.insertAdjacentElement('afterend',board);
   let notice=null;try{notice=JSON.parse(LS('gy_notice')||'null')}catch(e){}
   function richText(el,t,man){
     const manual=(man===undefined)?/\*\*[^*]+\*\*/.test(t):man;
@@ -819,6 +821,19 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
       else el.appendChild(document.createTextNode(s));
     });
   }
+  /* khung ôm vừa chữ: đo dòng dài nhất rồi chọn bề rộng khung, không để thừa hai bên */
+  function fitBoard(){
+    if(board.hidden||!board._pp)return;
+    const bd=board.querySelector('.bd');if(!bd)return;
+    const par=board.parentElement,cap=Math.min(600,par?par.clientWidth:600);
+    board.style.width=cap+'px';bd.style.width='max-content';bd.style.maxWidth='none';
+    const tw=bd.getBoundingClientRect().width;bd.style.width='';bd.style.maxWidth='';
+    const frac=1-(board._pp[0]+board._pp[1])/100;
+    const W=Math.max(Math.min(400,cap),Math.min(cap,Math.ceil(tw/frac)+10));
+    board.style.width=W+'px';
+  }
+  addEventListener('resize',()=>{clearTimeout(fitBoard._t);fitBoard._t=setTimeout(fitBoard,120)});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitBoard);
   function renderStrip(){
     const gr=greeting();
     const gkey=gr?gr[0]+ymd(NOW()):'';
@@ -832,11 +847,11 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
     let n=notice&&notice.text?notice:null;
     if(n&&n.until&&ymd(NOW())>n.until)n=null;
     const nkey=n?n.text+'|'+(n.until||''):'';
-    if(!n||LS('gy_note_x')===nkey){board.hidden=true;return}
+    if(!n){board.hidden=true;return}
     board.textContent='';
     const F=FRM[season]||FRM.def,G=FR[F.t];
     board.style.setProperty('--fc',F.c);board.style.aspectRatio=G.w+' / '+G.h;
-    board.style.setProperty('--pt',G.p[0]+'cqw');board.style.setProperty('--pr',G.p[1]+'cqw');board.style.setProperty('--pb',G.p[2]+'cqw');board.style.setProperty('--pl',G.p[3]+'cqw');board.style.setProperty('--xr',Math.max(4,G.p[1]-9)+'cqw');
+    board.style.setProperty('--pt',G.p[0]+'cqw');const t5=F.t===5,KL=t5?.78:.68,KR=t5?.72:.64;board.style.setProperty('--pr',(G.p[1]*KR)+'cqw');board.style.setProperty('--pb',G.p[2]+'cqw');board.style.setProperty('--pl',(G.p[3]*KL)+'cqw');board.style.setProperty('--xr',Math.max(4,G.p[1]-9)+'cqw');
     const W=G.w,H=G.h,c0=G.c[0],c1=G.c[1],u=v=>(v/W*100)+'cqw';
     const mk=(y0,y1,css,ps)=>{const d=document.createElement('div');d.className='fs';d.style.cssText=css;d.setAttribute('aria-hidden','true');
       const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 '+y0+' '+W+' '+(y1-y0));s.setAttribute('preserveAspectRatio','none');
@@ -856,8 +871,7 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
       richText(ln,t,man);bd.appendChild(ln);
     });
     tx.append(tt,bd);
-    const x=document.createElement('button');x.type='button';x.className='x';x.setAttribute('aria-label','Đóng thông báo');x.textContent='×';x.onclick=()=>{LS('gy_note_x',nkey);board.hidden=true};
-    board.append(tx,x);board.hidden=false;
+    board.append(tx);board.hidden=false;board._pp=[G.p[3]*KL,G.p[1]*KR];fitBoard();
   }
 
   /* ====== Chạm để hứng hạt rơi ====== */
