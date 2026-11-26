@@ -601,6 +601,11 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
 #mua-board .tx{position:relative;padding:30px 44px 32px;padding:var(--pt) var(--pr) var(--pb) var(--pl)}
 #mua-board .tt{font:700 12.5px 'Lora',Georgia,serif;letter-spacing:.2em;text-transform:uppercase;color:var(--fc);margin:0 0 6px}
 #mua-board .ln{margin:0;overflow-wrap:anywhere}
+#mua-board .bd{max-height:min(52vh,420px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+#mua-board .ln+.ln{margin-top:.1em}
+#mua-board .ln.sp{height:.55em;margin:0}
+#mua-board .ln.li{position:relative;padding-left:1.15em}
+#mua-board .ln.li:before{content:'';position:absolute;left:.25em;top:.78em;width:.38em;height:.38em;border-radius:50%;background:var(--fc);opacity:.85}
 #mua-board .ln strong{font-weight:700;color:#1c1209}
 #mua-board .x{position:absolute;right:var(--xr,7cqw);top:50%;margin-top:-13px;width:26px;height:26px;border:0;border-radius:50%;background:transparent;font:18px/1 system-ui,sans-serif;color:#8a7650;cursor:pointer}
 #mua-board .x:hover{background:rgba(94,63,30,.08)}
@@ -656,7 +661,8 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
   </div>
   <button type="button" class="save" id="mua-save">Lưu mùa cho mọi người</button>
   <h5>2. Thông báo ngắn</h5>
-  <textarea id="mua-nt" maxlength="240" placeholder="Ví dụ: Lịch nghỉ Tết: từ **28/1** đến hết **5/2**. Lớp học lại từ **6/2**. (Đặt **hai dấu sao** quanh chữ cần in đậm; nếu không đặt, ngày và giờ tự in đậm)"></textarea>
+  <textarea id="mua-nt" maxlength="240" rows="6" placeholder="Enter = xuống dòng. Dòng bắt đầu bằng - sẽ có chấm tròn. Đặt **hai dấu sao** quanh chữ cần in đậm (nếu không đặt, ngày và giờ tự in đậm).&#10;&#10;Ví dụ:&#10;Lịch nghỉ Tết&#10;- Nghỉ từ **28/1** đến **5/2**&#10;- Học lại từ **6/2**"></textarea>
+  <div id="mua-cc" style="text-align:right;font-size:12px;color:#8a7650;margin:-2px 0 6px"></div>
   <label for="mua-nu">Hiện đến hết ngày (bỏ trống nếu muốn hiện mãi)</label>
   <input id="mua-nu" type="date">
   <div class="row2"><button type="button" class="pri" id="mua-nsave">Lưu thông báo</button><button type="button" id="mua-nclr">Xóa thông báo</button></div>
@@ -800,8 +806,8 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
   const board=document.createElement('aside');board.id='mua-board';board.hidden=true;board.setAttribute('aria-label','Thông báo');
   const h1b=document.querySelector('.hero h1');if(h1b)h1b.insertAdjacentElement('afterend',board);
   let notice=null;try{notice=JSON.parse(LS('gy_notice')||'null')}catch(e){}
-  function richText(el,t){
-    const manual=/\*\*[^*]+\*\*/.test(t);
+  function richText(el,t,man){
+    const manual=(man===undefined)?/\*\*[^*]+\*\*/.test(t):man;
     const parts=manual?t.split(/(\*\*[^*]+\*\*)/):t.split(/(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?|\d{1,2}h(?:\d{2})?|\d{1,2}:\d{2})/);
     parts.forEach((s,i)=>{
       if(!s)return;
@@ -837,8 +843,16 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
     mk(c1,H,'bottom:0;height:'+u(H-c1));
     const tx=document.createElement('div');tx.className='tx';
     const tt=document.createElement('div');tt.className='tt';tt.textContent='Thông báo';
-    const ln=document.createElement('div');ln.className='ln';richText(ln,n.text);
-    tx.append(tt,ln);
+    const bd=document.createElement('div');bd.className='bd';
+    const man=/\*\*[^*]+\*\*/.test(n.text);
+    n.text.replace(/\r/g,'').split('\n').forEach(L=>{
+      const li=/^\s*[-•·]\s+/.test(L);const t=li?L.replace(/^\s*[-•·]\s+/,''):L.trim();
+      const ln=document.createElement('div');ln.className='ln';
+      if(!t){ln.className='ln sp';bd.appendChild(ln);return}
+      if(li)ln.className='ln li';
+      richText(ln,t,man);bd.appendChild(ln);
+    });
+    tx.append(tt,bd);
     const x=document.createElement('button');x.type='button';x.className='x';x.setAttribute('aria-label','Đóng thông báo');x.textContent='×';x.onclick=()=>{LS('gy_note_x',nkey);board.hidden=true};
     board.append(tx,x);board.hidden=false;
   }
@@ -931,6 +945,7 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
   let pick=setting;
   function syncUI(){pick=pick||setting;g.querySelectorAll('button').forEach(b=>b.classList.toggle('sel',b.dataset.s===pick))}
   const nt=document.getElementById('mua-nt'),nu=document.getElementById('mua-nu');
+  const ncc=document.getElementById('mua-cc');const cc=()=>{ncc.textContent=nt.value.length+' / 240 ký tự'};nt.addEventListener('input',cc);cc();
   function open(){pick=setting;syncUI();st.textContent='';nt.value=(notice&&notice.text)||'';nu.value=(notice&&notice.until)||'';box.classList.add('on')}
   document.getElementById('mua-x').onclick=()=>box.classList.remove('on');
   g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;pick=b.dataset.s;syncUI();apply(pick);st.style.color='#5D6F73';st.textContent='Đang xem thử: '+NAMES[pick]+'. Bấm Lưu để học viên cũng thấy.'});
@@ -1009,5 +1024,4 @@ $('copyZ').addEventListener('click',async()=>{const m=$('msgZ');try{await naviga
 
 })();
 </script>
-
 </body></html>
