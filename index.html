@@ -229,7 +229,8 @@ html[data-mua="trungthu"] .gl-t::after{background-image:url("data:image/svg+xml,
 </head><body><header class="bar"><div class="inner">
   <a href="#top" aria-label="Guangyu Hanyu – về đầu trang"><img data-img="logo" alt="Guangyu Hanyu"></a>
   <div class="right">
-    <nav class="nav" aria-label="Mục chính"><a data-link="nhapMon" href="#">Nhập môn</a><a data-link="onLuyen" href="#">Ôn luyện</a><a href="#cam-nhan">Cảm nhận</a><a href="#lien-he">Liên hệ</a></nav>
+    <nav class="nav" aria-label="Mục chính"><a data-link="nhapMon" href="#">Nhập môn</a><a data-link="onLuyen" href="#">Ôn luyện</a><a href="#cam-nhan">Cảm nhận</a><a href="#lien-he">Liên hệ</a><a class="lop-toi" data-lop-cua-toi href="/lop/">Lớp của tôi</a></nav>
+    <a class="lop-toi lop-toi-dt" data-lop-cua-toi href="/lop/" aria-label="Lớp của tôi">Lớp tôi</a>
     <button class="snd" id="snd" type="button" aria-pressed="true" aria-label="Bật/tắt tiếng chuông" title="Tiếng chuông">
       <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
       <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>
@@ -2112,4 +2113,32 @@ html[data-mua="dong"] .wave:not(.hero+.wave) .lay:nth-child(3) path{fill:#34608A
 </style>
 <style>html[data-mua="dong"] .wave:not(.hero+.wave){background:#DCEAF7}</style>
 <style>html[data-mua="dong"] footer{background:#264C73!important;color:#DCEAF7!important}</style>
+<style>
+/* nút Lớp của tôi: đổi màu theo mùa */
+:root{--lt-nen:#F3D77A;--lt-chu:#6B4A0C;--lt-vien:#D9B44A}
+html[data-mua="dong"]{--lt-nen:#F6D66E;--lt-chu:#6B4A0C;--lt-vien:#D8B040}
+html[data-mua="xuan"],html[data-mua="tet"]{--lt-nen:#BFE3B4;--lt-chu:#24552E;--lt-vien:#86C27A}
+html[data-mua="ha"]{--lt-nen:#F8C6D6;--lt-chu:#8A2F52;--lt-vien:#E896B2}
+html[data-mua="thu"],html[data-mua="trungthu"]{--lt-nen:#DCD3F2;--lt-chu:#4E3C86;--lt-vien:#B3A4E0}
+.nav a.lop-toi,.lop-toi-dt{background:var(--lt-nen)!important;color:var(--lt-chu)!important;border:1px solid var(--lt-vien);margin-left:4px;font-weight:700;transition:filter .2s,transform .2s}
+.nav a.lop-toi:hover,.lop-toi-dt:hover{filter:brightness(.95);transform:translateY(-1px)}
+.lop-toi-dt{display:none;font:700 13px var(--f-body);text-decoration:none;padding:7px 12px;border-radius:99px;white-space:nowrap}
+@media (max-width:760px){
+  .lop-toi-dt{display:inline-block}
+  /* giữ nguyên tỉ lệ logo, chỉ thu nhỏ đều khi màn hình hẹp */
+  .bar .inner{gap:8px}
+  .bar .inner>a:first-child{flex:0 0 auto}
+  .bar .inner>a:first-child img{max-width:none!important;width:auto!important;height:clamp(24px,7.8vw,38px)!important}
+  @media (min-width:370px){.bar .inner>a:first-child img{height:clamp(24px,9vw,38px)!important}}
+  .bar .cta{padding-inline:11px;font-size:13px}
+  .lop-toi-dt{padding:7px 11px}
+  /* điện thoại: 2 nút tiếng chuông + hiệu ứng xuống ngay dưới logo */
+  .bar .inner{position:relative}
+  .bar #snd,.bar #fxbtn{position:absolute;top:calc(100% + 6px);width:32px;height:32px;background:rgba(255,255,255,.7);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .bar #snd{left:var(--lt-trai,16px)}
+  .bar #fxbtn{left:calc(var(--lt-trai,16px) + 38px)}
+  .hero{padding-top:34px}
+}
+</style>
+<script src="lop-cua-toi.js"></script>
 </body></html>
