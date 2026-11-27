@@ -407,7 +407,7 @@ document.querySelectorAll('[data-svg]').forEach(d=>d.innerHTML=SVG[d.dataset.svg
 document.querySelectorAll('[data-link]').forEach(a=>a.href=CONFIG.links[a.dataset.link]);
 
 /* ---- tiếng chuông nhẹ (tạo bằng Web Audio, không cần file) ---- */
-let muted=false; try{muted=localStorage.getItem('gy-mute')==='1'}catch(e){}
+let muted=true; try{muted=localStorage.getItem('gy-mute')!=='0'}catch(e){}
 const sndBtn=$('snd'); sndBtn.setAttribute('aria-pressed',String(!muted));
 sndBtn.onclick=()=>{muted=!muted;sndBtn.setAttribute('aria-pressed',String(!muted));try{localStorage.setItem('gy-mute',muted?'1':'0')}catch(e){} if(!muted)chime(0)};
 let ctx=null;
