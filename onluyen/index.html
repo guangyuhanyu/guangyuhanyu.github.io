@@ -57,7 +57,7 @@ input[type=text],input[type=password],input[type=tel]{width:100%;padding:11px 12
 .seal svg .f{fill:#FBF1DC;stroke:none}
 .seal svg *{vector-effect:non-scaling-stroke}
 /* dải banner khi đang làm bài */
-.strip{position:relative;height:116px;border:1.5px solid var(--gold);border-radius:12px;overflow:hidden;margin-bottom:14px;background:#dfe8e6 center/cover no-repeat}
+.strip{position:relative;height:auto;aspect-ratio:5/1;min-height:96px;border:1.5px solid var(--gold);border-radius:12px;overflow:hidden;margin-bottom:14px;background:#dfe8e6 center/cover no-repeat}
 .strip .sc{position:absolute;inset:0}
 .strip.scrim .sc{background:linear-gradient(90deg,rgba(38,54,61,.85),rgba(38,54,61,.35) 60%,rgba(38,54,61,0))}
 .strip.dark .sc{background:linear-gradient(90deg,rgba(32,46,52,.55),rgba(32,46,52,0) 70%)}
@@ -118,7 +118,7 @@ body.nopy rt{display:none}
 .foot{text-align:center;padding:18px 16px 16px}
 .foot img{height:46px;width:auto;max-width:100%}
 .foot .fct{font-size:12.5px;color:var(--ink-soft);margin:10px 0 4px}
-@media(max-width:559px){body{padding:12px 10px 24px}.card{padding:22px 16px 18px}.strip{height:92px}.strip b{font-size:17px}.lv b{font-size:14px}}
+@media(max-width:559px){body{padding:12px 10px 24px}.card{padding:22px 16px 18px}.strip{min-height:92px}.strip b{font-size:17px}.lv b{font-size:14px}}
 
 /* banner đầu trang: nền Đôn Hoàng + tranh hoa + logo */
 .hero{position:relative;height:230px;border:1.5px solid var(--gold);border-radius:14px;overflow:hidden;margin-bottom:16px;background:#f1d9bf center/cover no-repeat;box-shadow:0 8px 20px rgba(67,89,98,.18)}
@@ -183,8 +183,11 @@ body.nopy rt{display:none}
 <script>
 /* ====== CẤU HÌNH: dán địa chỉ Apps Script (kết thúc bằng /exec) vào đây. Để trống = chế độ chạy thử trên máy. ====== */
 const API_URL = "https://script.google.com/macros/s/AKfycbz_ghkerOPE2HxlIJeVkWbv8-FIFU98GcA6TCku_tEXQ6L-5IyVGapeLKVtvJqdywIz/exec";
+/* Vị trí khung tranh (dọc %) để không cắt ngang chủ thể */
+const POSX={q1:60,q2:68,q3:40,q4:78,q5:75};
+const POS={q1:20,q2:46,q3:48,q4:19,q5:24,h1:14,h2:9,h3:3,h4:0};
 const LEVELS = [
- ["q1","Giao tiếp · Quyển 1","Giao tiếp","Quyển 1","light","trúc"],["q2","Giao tiếp · Quyển 2","Giao tiếp","Quyển 2","scrim","mai"],["q3","Giao tiếp · Quyển 3","Giao tiếp","Quyển 3","light","song"],["q4","Giao tiếp · Quyển 4","Giao tiếp","Quyển 4","light","may"],["q5","Giao tiếp · Quyển 5","Giao tiếp","Quyển 5","light","nui"],
+ ["q1","Giao tiếp · Quyển 1","Giao tiếp","Quyển 1","light","trúc"],["q2","Giao tiếp · Quyển 2","Giao tiếp","Quyển 2","light","mai"],["q3","Giao tiếp · Quyển 3","Giao tiếp","Quyển 3","light","song"],["q4","Giao tiếp · Quyển 4","Giao tiếp","Quyển 4","light","may"],["q5","Giao tiếp · Quyển 5","Giao tiếp","Quyển 5","light","nui"],
  ["h1","HSK 1 (3.0)","HSK 1","Khung 3.0","scrim","dao"],["h2","HSK 2 (3.0)","HSK 2","Khung 3.0","scrim","sen"],["h3","HSK 3 (3.0)","HSK 3","Khung 3.0","scrim","phong"],["h4","HSK 4 (3.0)","HSK 4","Khung 3.0","scrim","tuyet"]
 ];
 const SPECIES = {
@@ -338,7 +341,7 @@ function stat(lv){const s=S.state.lv[lv]||{r:[],w:[]};return s}
 let OPENG=null;
 const GROUPS={q:{t:'Giao tiếp',s:'Luyện nói cấp tốc · 5 quyển',img:'img/cover-giaotiep.webp',cls:'q'},h:{t:'HSK',s:'Khung 3.0 · 4 cấp',img:'img/t-h2.webp',cls:'h'}};
 function lvCards(g){return LEVELS.filter(x=>x[0][0]==g).map(([k,full,t1,t2,tone,ic])=>{const d=stat(k).r.length;
-  return `<button class="lv ${tone}" style="background-image:url(img/t-${k}.webp)" onclick="startLevel('${k}')"><span class="sc"></span><span class="tx"><b>${g=='q'?t2:t1}</b><small>${d}/300 câu</small></span><span class="bar"><i style="width:${Math.min(100,d/3)}%"></i></span></button>`}).join('')}
+  return `<button class="lv ${tone}" style="background-image:url(img/t-${k}.webp);background-position:${POSX[k]??50}% ${POS[k]??50}%" onclick="startLevel('${k}')"><span class="sc"></span><span class="tx"><b>${g=='q'?t2:t1}</b><small>${d}/300 câu</small></span><span class="bar"><i style="width:${Math.min(100,d/3)}%"></i></span></button>`}).join('')}
 function openGroup(g){OPENG=(OPENG==g?null:g);screenLevels(true)}
 function screenLevels(keep){
   curLevel=null;if(!keep)OPENG=null;
@@ -418,7 +421,7 @@ function render(){
   const q=CUR;built=[];
   RUBY=curLevel[0]=='q';PYM=(DATA[curLevel]&&DATA[curLevel].py)||{};
   const lm=lvMeta(curLevel),lvName=lm[1];
-  let h=`<div class="card${useRb()?' rbm':''}"><div class="strip ${lm[4]}" style="background-image:url(img/t-${curLevel}.webp)"><span class="sc"></span><span class="tx"><b>${lm[2]}</b><small>${lm[3]} · CÂU ${q.n}</small></span></div><div class="meta"><span>Câu ${q.n} / 300</span>${curLevel[0]=='q'?`<button class="pybtn" id="pybtn" onclick="togglePy()">${pyOn()?'Ẩn pinyin':'Hiện pinyin'}</button>`:''}<span>Điểm: ${S.state.pts}</span></div>`;
+  let h=`<div class="card${useRb()?' rbm':''}"><div class="strip ${lm[4]}" style="background-image:url(img/t-${curLevel}.webp);background-position:50% ${POS[curLevel]??50}%"><span class="sc"></span><span class="tx"><b>${lm[2]}</b><small>${lm[3]} · CÂU ${q.n}</small></span></div><div class="meta"><span>Câu ${q.n} / 300</span>${curLevel[0]=='q'?`<button class="pybtn" id="pybtn" onclick="togglePy()">${pyOn()?'Ẩn pinyin':'Hiện pinyin'}</button>`:''}<span>Điểm: ${S.state.pts}</span></div>`;
   if(q.ins) h+=`<div class="ins"><b>Yêu cầu</b><span>${F(q.ins)}</span></div>`;
   if(q.audio) h+=`<button class="spk" onclick="speak()" title="Nghe"><svg viewBox="0 0 24 24"><path d="M4 9.5v5h3.5l5 4v-13l-5 4z"/><path d="M16 9c1.6 1.8 1.6 4.2 0 6M18.8 6.5c3.4 3.2 3.4 7.8 0 11"/></svg></button><div class="note" style="margin:-2px 0 8px">Bấm loa để nghe, nghe được tối đa vài lần.</div>`;
   if(q.ctx) h+=`<div class="ctx">${F(q.ctx)}</div>`;
