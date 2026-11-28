@@ -1,4 +1,4 @@
-/*! gy-tools.js v7.5 · Công cụ giáo viên Guangyu Hanyu (dùng chung mọi quyển: q1…, h1–h4…)
+/*! gy-tools.js v7.6 · Công cụ giáo viên Guangyu Hanyu (dùng chung mọi quyển: q1…, h1–h4…)
  * Bút · dạ quang · tẩy · ô chữ (có pinyin) · dấu ✓ ✗ · trình chiếu phóng to · tải PDF · mở bảng trắng.
  * Đặt tại https://guangyuhanyu.github.io/gy-tools.js (cùng gy-pinyin.js). Chỉ chạy trên máy đã bật ?gv=1.
  * Sửa công cụ = chỉ cần up lại file này.
@@ -22,11 +22,11 @@ var CSS=[
 'html:not(.gyAct) .gyNote,html.gyT-tx .gyNote{pointer-events:auto;cursor:move;touch-action:none}html .gyNote.ed{cursor:text}','html:not(.gyAct) .gyNote:hover .gyNt,html:not(.gyAct) .gyNote.py:hover .gyNr,html.gyT-tx .gyNote:hover .gyNt,html.gyT-tx .gyNote.py:hover .gyNr{outline:1px dashed rgba(73,113,126,.5);outline-offset:2px}','.gyNote.drag{opacity:.85}.gyNote.drag .gyNt,.gyNote.drag .gyNr{box-shadow:0 0 0 2px #2a5d76!important}','.gyNote.ed{visibility:hidden}','.gyNh .mv{display:none!important}','.gyStp{filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff)}',
 '.gyNt,.gyNr{font-family:\"Kaiti SC\",\"STKaiti\",\"KaiTi\",\"楷体\",\"Noto Serif SC\",\"Songti SC\",serif;font-weight:400;white-space:pre;padding:0 2px;border-radius:4px}',
 '.gyNt{line-height:1.3;outline:none}',
-'.gyNr{display:none;line-height:1.9}.gyNr ruby{ruby-position:over;margin:0 .07em}.gyNr rt{font-family:Andika,"Be Vietnam Pro",sans-serif;font-weight:400;font-size:.56em;line-height:1}',
+'.gyNr{display:none;line-height:1.15}.gyNr .gyL{display:block;white-space:nowrap}.gyNr .gyR{display:inline-flex!important;flex-direction:column!important;align-items:center;vertical-align:bottom;margin:0 .04em}.gyNr .gyR i{display:block!important;visibility:visible!important;font:400 .46em/1.25 "Be Vietnam Pro",Andika,system-ui,sans-serif!important;font-style:normal!important;letter-spacing:0;opacity:.95;white-space:nowrap}.gyNr .gyR b{display:block;font-weight:400}.gyNr .gyC{vertical-align:bottom}',
 '.gyNote.py:not(.ed) .gyNt{display:none}.gyNote.py:not(.ed) .gyNr{display:block}',
 '#gyEd{position:fixed;z-index:2147482400;display:none;min-width:.6em;min-height:1.3em;line-height:1.3;padding:0 2px;white-space:pre;outline:1.5px dashed rgba(207,61,47,.7);outline-offset:3px;background:rgba(255,253,248,.55);font-family:\"Kaiti SC\",\"STKaiti\",\"KaiTi\",\"楷体\",\"Noto Serif SC\",\"Songti SC\",serif;font-weight:400;cursor:text;-webkit-user-select:text;user-select:text;caret-color:#CF3D2F}',
-'.gyNh{position:absolute;left:0;top:-26px;display:none;gap:4px}',
-'html.gyT-tx .gyNote:hover .gyNh,html:not(.gyAct) .gyNote:hover .gyNh,.gyNote.ed .gyNh{display:flex}',
+'.gyNh{position:absolute;left:-4px;top:-30px;display:flex;gap:4px;padding:2px 4px 10px 4px;visibility:hidden;transition:visibility 0s .5s}',
+'html.gyT-tx .gyNote:hover .gyNh,html:not(.gyAct) .gyNote:hover .gyNh{visibility:visible;transition-delay:0s}.gyNote.ed .gyNh{visibility:hidden!important}',
 '.gyNh span{display:inline-flex;align-items:center;justify-content:center;width:24px;height:22px;border-radius:6px;background:#2a5d76;color:#fbf6ec;font:700 13px system-ui;cursor:move;user-select:none;-webkit-user-select:none}',
 '.gyNh span.x{background:#a83a2c;cursor:pointer}',
 'html.gyP .gyZoom{transform-origin:top center;margin-left:auto!important;margin-right:auto!important}',
@@ -333,13 +333,13 @@ try{imeMode=localStorage.getItem('gy-ime-mode')==='en'?'en':'zh';}catch(e){}
 var imeBox=document.createElement('div');imeBox.id='gyIme';imeBox.innerHTML='<div class="b"></div><div class="l"></div>';document.body.appendChild(imeBox);
 var imeM=document.createElement('div');imeM.id='gyImeM';document.body.appendChild(imeM);
 var imeLoading=false;
-function loadIme(cb){if(window.GYIME){if(cb)cb();return;}if(imeLoading)return;imeLoading=true;var sc=document.createElement('script');sc.src=GY_BASE+'gy-ime.js?v=1';sc.onload=function(){imeLoading=false;if(cb)cb();};sc.onerror=function(){imeLoading=false;};(document.head||DE).appendChild(sc);}
+var imeCbs=[];function loadIme(cb){if(window.GYIME){if(cb)cb();return;}if(cb)imeCbs.push(cb);if(imeLoading)return;imeLoading=true;var sc=document.createElement('script');sc.src=GY_BASE+'gy-ime.js?v=1';sc.onload=function(){imeLoading=false;var q=imeCbs;imeCbs=[];q.forEach(function(f){try{f();}catch(_){}});};sc.onerror=function(){imeLoading=false;};(document.head||DE).appendChild(sc);}
 setTimeout(function(){loadIme();loadPy(function(){allNotes().forEach(rubyNote);},true);},1500);
 var PUNC={',':'，','.':'。','?':'？','!':'！',';':'；',':':'：','\\':'、','(':'（',')':'）','[':'【',']':'】','<':'《','>':'》','~':'～','^':'……','_':'——','$':'￥'};
 function edT(){return EDN?gyEd:null;}
 function posMode(){var t=edT();if(!t||document.activeElement!==t){imeM.style.display='none';return;}var r=t.getBoundingClientRect();imeM.style.display='block';imeM.style.left=(r.left-4)+'px';imeM.style.top=Math.max(4,r.top-24)+'px';imeM.textContent=imeMode==='zh'?'中 (Shift đổi)':'英 (Shift đổi)';imeM.className=imeMode==='zh'?'':'en';}
 function insT(s){document.execCommand('insertText',false,s);posMode();}
-function updIme(){if(!ib||!window.GYIME){imeBox.style.display='none';icands=[];return;}icands=GYIME.cands(ib);imeBox.style.display='block';drawIme();}
+function updIme(){if(!ib){imeBox.style.display='none';icands=[];return;}if(!window.GYIME){icands=[];imeBox.style.display='block';imeBox.firstChild.textContent=ib;imeBox.lastChild.innerHTML='<span style="color:#aaa;font-size:13px;padding:4px">Đang tải bộ gõ…</span>';loadIme(updIme);return;}icands=GYIME.cands(ib);imeBox.style.display='block';drawIme();}
 function drawIme(){imeBox.firstChild.textContent=GYIME.seg(ib);var pg=icands.slice(icp*9,icp*9+9),h='';
  pg.forEach(function(c,i){h+='<span class="c'+(i===0?' f':'')+'" data-i="'+(icp*9+i)+'"><small>'+(i+1)+'</small>'+c.w+'</span>';});
  if(icands.length>9)h+='<span class="pg">'+(icp+1)+'/'+Math.ceil(icands.length/9)+'</span>';
@@ -376,8 +376,8 @@ function imeKey(e,t,syn){
  if(mod||e.altKey)return;
  if(k==='Escape'){e.preventDefault();if(ib){ib='';updIme();}else doneNote(t);return;}
  if(k==='Enter'&&!ib){e.preventDefault();if(e.shiftKey){document.execCommand('insertLineBreak');posMode();}else doneNote(t);return;}
- var zh=imeMode==='zh'&&window.GYIME;
- if(imeMode==='zh'&&!window.GYIME)loadIme();
+ var zh=imeMode==='zh';
+ if(zh&&!window.GYIME)loadIme(updIme);
  if(zh&&ib){
   if(/^[a-zA-Z']$/.test(k)&&!(e.shiftKey&&/[A-Z]/.test(k))){e.preventDefault();ib+=k.toLowerCase();icp=0;updIme();return;}
   if(k==='Backspace'){e.preventDefault();ib=ib.slice(0,-1);icp=0;updIme();return;}
@@ -489,7 +489,7 @@ function toPy(text){
 }
 function esc(x){return x.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
 function rubyNote(n){var w=n.el;if(!w)return;var rb=w.querySelector('.gyNr');if(!NPY||!PYD){w.classList.remove('py');return;}
- rb.innerHTML=toPy(n.t||'').map(function(o){return o.c==='\n'?'<br>':(o.p?'<ruby>'+esc(o.c)+'<rt>'+o.p+'</rt></ruby>':esc(o.c));}).join('');w.classList.add('py');}
+ rb.innerHTML=(n.t||'').split('\n').map(function(line){return '<span class="gyL">'+(toPy(line).map(function(o){return o.p?'<span class="gyR"><i>'+o.p+'</i><b>'+esc(o.c)+'</b></span>':'<span class="gyC">'+(o.c===' '?'&nbsp;':esc(o.c))+'</span>';}).join('')||'&nbsp;')+'</span>';}).join('');w.classList.add('py');}
 function allNotes(){var a=[];SURF.forEach(function(s){a=a.concat(s.N);});return a;}
 function toggleNotePy(){
  if(NPY){NPY=false;allNotes().forEach(rubyNote);say('Ẩn pinyin trên chữ Thầy gõ');return;}
