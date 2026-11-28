@@ -1,4 +1,4 @@
-/*! gy-tools.js v7.1 · Công cụ giáo viên Guangyu Hanyu (dùng chung mọi quyển: q1…, h1–h4…)
+/*! gy-tools.js v7.2 · Công cụ giáo viên Guangyu Hanyu (dùng chung mọi quyển: q1…, h1–h4…)
  * Bút · dạ quang · tẩy · ô chữ (có pinyin) · dấu ✓ ✗ · trình chiếu phóng to · tải PDF · mở bảng trắng.
  * Đặt tại https://guangyuhanyu.github.io/gy-tools.js (cùng gy-pinyin.js). Chỉ chạy trên máy đã bật ?gv=1.
  * Sửa công cụ = chỉ cần up lại file này.
@@ -229,7 +229,7 @@ function pickA(cx,cy,s){
  for(var k=0;k<xs.length;k++){
   var x=Math.max(hr.left+6,Math.min(hr.right-6,xs[k])),els=document.elementsFromPoint?document.elementsFromPoint(x,cy):[],el=null;
   for(var i=0;i<els.length;i++){var c=els[i];if(c===h||!h.contains(c)||s.ink.contains(c))continue;el=c;break;}
-  while(el&&el!==h){var cs=getComputedStyle(el);if(el.offsetHeight>=24&&el.offsetWidth>=60&&cs.display!=='inline'&&cs.display!=='contents')break;el=el.parentElement;}
+  while(el&&el!==h){if(/^(CANVAS|IMG|SVG|VIDEO|IFRAME|INPUT|TEXTAREA|SELECT|PICTURE|OBJECT|EMBED)$/i.test(el.tagName)||el.ownerSVGElement){el=el.parentElement;continue;}var cs=getComputedStyle(el);if(el.offsetHeight>=24&&el.offsetWidth>=60&&cs.display!=='inline'&&cs.display!=='contents')break;el=el.parentElement;}
   if(el&&el!==h)return el;
  }
  return null;
@@ -443,6 +443,7 @@ function attachPrint(w){
  s.S.forEach(function(o){o.p.forEach(function(q){var x=q.x+(o.tx||0)-ext;if(x-o.w<mn)mn=x-o.w;if(x+o.w>mx)mx=x+o.w;});});
  s.N.forEach(function(n){var x=n.x-ext,ww=n.el?n.el.offsetWidth:80;if(x<mn)mn=x;if(x+ww>mx)mx=x+ww;});
  var res={l:Math.min(400,Math.max(0,Math.ceil(-mn))),r:Math.min(400,Math.max(0,Math.ceil(mx-w)))};
+ root.classList.add('gyPV');DE.classList.add('gyPrn');
  if(!s.S.length&&!s.N.length)return{l:0,r:0};
  var hosts=new Map();
  function box(h){if(hosts.has(h))return hosts.get(h);var f=aOff(h,s);if(!f){hosts.set(h,null);return null;}
@@ -470,7 +471,7 @@ function prePrint(){
  PR.classList.add('gyPR');
  var ex=DECK?{l:0,r:0}:attachPrint(w);saved.ml=PR.style.marginLeft;
  if(ex.l||ex.r){PR.style.marginLeft=ex.l+'px';saved.mr=PR.style.marginRight;PR.style.marginRight='0px';}
- PR.style.setProperty('--gyPZ',Math.min(1,700/(w+ex.l+ex.r)).toFixed(3));
+ PR.style.setProperty('--gyPZ',Math.min(1,(window.GY_PRINT_W||700)/(w+ex.l+ex.r)).toFixed(3));
 }
 function postPrint(){
  if(!saved)return;thawMedia();
