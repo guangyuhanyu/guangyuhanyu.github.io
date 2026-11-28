@@ -1,4 +1,4 @@
-/*! gy-tools.js v7.4 · Công cụ giáo viên Guangyu Hanyu (dùng chung mọi quyển: q1…, h1–h4…)
+/*! gy-tools.js v7.5 · Công cụ giáo viên Guangyu Hanyu (dùng chung mọi quyển: q1…, h1–h4…)
  * Bút · dạ quang · tẩy · ô chữ (có pinyin) · dấu ✓ ✗ · trình chiếu phóng to · tải PDF · mở bảng trắng.
  * Đặt tại https://guangyuhanyu.github.io/gy-tools.js (cùng gy-pinyin.js). Chỉ chạy trên máy đã bật ?gv=1.
  * Sửa công cụ = chỉ cần up lại file này.
@@ -18,14 +18,13 @@ var CSS=[
 '.gyInkL svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}',
 '.gyInkL svg path{fill:none;stroke-linecap:round;stroke-linejoin:round}',
 '.gyNotes{position:absolute;left:0;top:0;width:100%;height:100%}',
-'.gyNote{position:absolute;min-width:60px;pointer-events:none}',
-'html:not(.gyAct) .gyNote,html.gyT-tx .gyNote{pointer-events:auto;cursor:move;touch-action:none}html .gyNote.ed{cursor:text}','html:not(.gyAct) .gyNote:not(.ed):hover .gyNt,html:not(.gyAct) .gyNote.py:not(.ed):hover .gyNr{box-shadow:0 0 0 1.5px rgba(42,93,118,.45);background:rgba(250,244,232,.45)}','.gyNote.drag{opacity:.85}.gyNote.drag .gyNt,.gyNote.drag .gyNr{box-shadow:0 0 0 2px #2a5d76!important}','.gyNote.ed .gyNt{background:rgba(250,244,232,.92)!important;box-shadow:0 0 0 2px #2a5d76!important;cursor:text}','.gyNh .mv{display:none!important}','.gyStp{filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff)}',
-'.gyNt,.gyNr{font-family:"Be Vietnam Pro","PingFang SC","Noto Sans SC",system-ui,sans-serif;font-weight:600;white-space:pre-wrap;word-break:break-word;max-width:820px;padding:2px 6px;border-radius:6px}',
-'.gyNt{line-height:1.35;outline:none;min-height:1.35em}',
-'.gyNr{display:none;line-height:1.9}.gyNr ruby{ruby-position:over}.gyNr rt{font-family:Andika,"Be Vietnam Pro",sans-serif;font-weight:400;font-size:.56em;line-height:1}',
+'.gyNote{position:absolute;pointer-events:none}',
+'html:not(.gyAct) .gyNote,html.gyT-tx .gyNote{pointer-events:auto;cursor:move;touch-action:none}html .gyNote.ed{cursor:text}','html:not(.gyAct) .gyNote:hover .gyNt,html:not(.gyAct) .gyNote.py:hover .gyNr,html.gyT-tx .gyNote:hover .gyNt,html.gyT-tx .gyNote.py:hover .gyNr{outline:1px dashed rgba(73,113,126,.5);outline-offset:2px}','.gyNote.drag{opacity:.85}.gyNote.drag .gyNt,.gyNote.drag .gyNr{box-shadow:0 0 0 2px #2a5d76!important}','.gyNote.ed{visibility:hidden}','.gyNh .mv{display:none!important}','.gyStp{filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff)}',
+'.gyNt,.gyNr{font-family:\"Kaiti SC\",\"STKaiti\",\"KaiTi\",\"楷体\",\"Noto Serif SC\",\"Songti SC\",serif;font-weight:400;white-space:pre;padding:0 2px;border-radius:4px}',
+'.gyNt{line-height:1.3;outline:none}',
+'.gyNr{display:none;line-height:1.9}.gyNr ruby{ruby-position:over;margin:0 .07em}.gyNr rt{font-family:Andika,"Be Vietnam Pro",sans-serif;font-weight:400;font-size:.56em;line-height:1}',
 '.gyNote.py:not(.ed) .gyNt{display:none}.gyNote.py:not(.ed) .gyNr{display:block}',
-'html.gyT-tx .gyNt,html.gyT-tx .gyNote.py:not(.ed) .gyNr{background:rgba(250,244,232,.55);box-shadow:0 0 0 1.5px rgba(42,93,118,.35)}',
-'html.gyT-tx .gyNt:focus{background:rgba(250,244,232,.92);box-shadow:0 0 0 2px #2a5d76}',
+'#gyEd{position:fixed;z-index:2147482400;display:none;min-width:.6em;min-height:1.3em;line-height:1.3;padding:0 2px;white-space:pre;outline:1.5px dashed rgba(207,61,47,.7);outline-offset:3px;background:rgba(255,253,248,.55);font-family:\"Kaiti SC\",\"STKaiti\",\"KaiTi\",\"楷体\",\"Noto Serif SC\",\"Songti SC\",serif;font-weight:400;cursor:text;-webkit-user-select:text;user-select:text;caret-color:#CF3D2F}',
 '.gyNh{position:absolute;left:0;top:-26px;display:none;gap:4px}',
 'html.gyT-tx .gyNote:hover .gyNh,html:not(.gyAct) .gyNote:hover .gyNh,.gyNote.ed .gyNh{display:flex}',
 '.gyNh span{display:inline-flex;align-items:center;justify-content:center;width:24px;height:22px;border-radius:6px;background:#2a5d76;color:#fbf6ec;font:700 13px system-ui;cursor:move;user-select:none;-webkit-user-select:none}',
@@ -56,7 +55,7 @@ var CSS=[
 '#gyImeM{position:fixed;z-index:2147482500;display:none;font:12px "Be Vietnam Pro",system-ui,sans-serif;background:#CF3D2F;color:#fff;border-radius:6px;padding:1px 6px;cursor:pointer}#gyImeM.en{background:#7d7466}',
 '#gyWbF{position:fixed;top:0;left:0;width:100vw;height:100vh;border:0;margin:0;padding:0;z-index:2147482000;background:#FDFBF6}',
 
-'.gyNote.sel .gyNt,.gyNote.sel .gyNr{box-shadow:0 0 0 2px rgba(207,61,47,.75)!important;border-radius:4px}',
+'.gyNote.sel .gyNt,.gyNote.sel .gyNr{outline:1.5px solid rgba(207,61,47,.7)!important;outline-offset:2px}',
 '@media print{#gyBar,#gyTip,#gyHelp,#gyWm{display:none!important}html.gyT,html.gyT body{overflow:visible!important}.gyZoom{transform:none!important}.gyPR{zoom:var(--gyPZ,1);overflow:clip!important}html.gyT,html.gyT *{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{margin:10mm}}'
 ].join('\n');
 
@@ -78,7 +77,7 @@ var st=document.createElement('style');st.id='gy-tools-css';st.textContent=CSS;(
 DE.classList.add('gyT');
 
 var on=false,fsUsed=false,zAdj=1,tool='hand',penC='#e53935',hlC='#ffe14d',lzC='#e53935',szI=0,txI=1,mul=1,lzOn=false,selN=null;
-var PEN=[2,3.5,6],HLW=[12,18,26],FS=[16,22,30],STP=[20,28,38];
+var PEN=[2,3.5,6],HLW=[12,18,26],FS=[18,24,32],STP=[20,28,38];
 var COLORS=['#e53935','#1e88e5','#222222','#2eaa4a','#d81b60','#fb8c00'];
 var CN=['đỏ tươi','xanh dương','đen','xanh lá','hồng cánh sen','cam'],SN=['nhỏ','vừa','to'];
 var HLC=['#ffe14d','#ff9ec7','#8ef0c8','#8fd3ff','#ffc29a','#c9a7ff'],HN=['vàng chanh','hồng phấn','xanh bạc hà','xanh da trời','cam đào','tím oải hương'];
@@ -170,11 +169,11 @@ function enter(){
  var anchor=((window.scrollY||0)-rootTop())/zr();
  root.style.width=root.offsetWidth+'px';root.classList.add('gyZoom');
  on=true;DE.classList.add('gyP');fit();
- var f=DE.requestFullscreen||DE.webkitRequestFullscreen;fsUsed=false;
- if(f&&!IFR){try{var r=f.call(DE);fsUsed=true;if(r&&r.catch)r.catch(function(){fsUsed=false;});}catch(e){fsUsed=false;}}
+ fsUsed=false;
  var fix=function(){if(!on)return;fit();window.scrollTo(0,Math.max(0,rootTop()+anchor*zr()));};
  fix();setTimeout(fix,250);setTimeout(fix,700);
- say('Đang chiếu · F để thôi · ? xem phím tắt');
+ var full=(window.outerHeight||0)>=(screen.height||0)-4;
+ say(full?'Đang chiếu · F để thôi · ? xem phím tắt':'Đang chiếu · mẹo: bấm ⌃⌘F để Safari toàn màn hình (Esc không làm thoát)',full?1600:4200);
 }
 function exit(){
  if(!on)return;
@@ -197,7 +196,7 @@ document.addEventListener('fullscreenchange',onFs);document.addEventListener('we
 /* ---------- vẽ ---------- */
 function setTool(t){
  if(t==='lz'){toggleLz();return;}
- if(t!=='tx'){pendW=null;try{sweepEmpty();}catch(_){}}
+ if(t!=='tx'){try{commitEd();sweepEmpty();}catch(_){}}
  tool=t;
  DE.className=DE.className.replace(/\bgyT-\w+\b/g,'').replace(/\bgyAct\b/g,'').trim();
  if(t!=='hand'&&t!=='lz'){DE.classList.add('gyAct');ensure();}if(t!=='hand')DE.classList.add('gyT-'+t);
@@ -259,7 +258,7 @@ function relayout(s){
 var rlQ=0;function relayAll(){if(rlQ)return;rlQ=requestAnimationFrame(function(){rlQ=0;if(saved)return;for(var i=0;i<SURF.length;i++){try{relayout(SURF[i]);}catch(_){}}});}
 
 function render(s){while(s.G.firstChild)s.G.removeChild(s.G.firstChild);s.NT.innerHTML='';s.S.forEach(function(o){s.G.appendChild(mkPath(o));});s.N.forEach(function(n){s.NT.appendChild(mkNote(n,s));});}
-function blurNote(){var ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('gyNt')){ae.blur();return true;}return false;}
+function blurNote(){if(EDN){commitEd();return true;}return false;}
 var drawing=null,dS=null;
 document.addEventListener('pointerdown',function(e){if(selN&&!(e.target.closest&&(e.target.closest('.gyNote')||e.target.closest('#gyBar'))))selNote(null);},true);
 function bindInk(s){
@@ -268,10 +267,10 @@ function bindInk(s){
   if(tool==='hand')return;
   if(tool==='tx'){
    if(e.target.closest('.gyNote'))return;
-   e.preventDefault();blurNote();selNote(null);sweepEmpty();loadIme();
-   var fs=FS[txI]*mul/zOf(s),q=pt(e,s),n={x:q.x,y:q.y-fs*0.7,c:penC,f:fs,t:''};anc(n,e,s);
-   s.N.push(n);act({k:'n+',n:n,s:s});var el=mkNote(n,s);s.NT.appendChild(el);editNote(el);setTimeout(function(){editNote(el);},0);
-   var fx=function(){L.removeEventListener('pointerup',fx);if(document.activeElement!==el.querySelector('.gyNt'))editNote(el);};L.addEventListener('pointerup',fx);return;
+   e.preventDefault();e.stopPropagation();blurNote();selNote(null);sweepEmpty();
+   var fs=FS[txI]*mul/zOf(s),q=pt(e,s),n={x:q.x-2,y:q.y-fs*0.65,c:penC,f:fs,t:''};anc(n,e,s);
+   var el=mkNote(n,s);s.NT.appendChild(el);openEd(n,s,true);
+   var fx=function(){L.removeEventListener('pointerup',fx);if(EDN&&document.activeElement!==gyEd)focusEd();};L.addEventListener('pointerup',fx);return;
   }
   e.preventDefault();e.stopPropagation();
   if(tool==='ok'||tool==='no'){var o=stamp(pt(e,s),tool,s);anc(o,e,s);s.S.push(o);s.G.appendChild(mkPath(o));act({k:'s',o:o,s:s});return;}
@@ -328,15 +327,16 @@ function selNote(x){if(selN&&selN.n.el)selN.n.el.classList.remove('sel');selN=x;
 function noteSize(i){var n=selN.n,s=selN.s,f=FS[i]/zOf(s);n.f=f;var w=n.el;if(!w)return;var t=w.querySelector('.gyNt'),rb=w.querySelector('.gyNr');t.style.fontSize=f+'px';rb.style.fontSize=f+'px';if(NPY)rubyNote(n);say('Cỡ ô chữ: '+SN[i]);}
 function setSize(i){if(selN&&selN.n.el&&selN.n.el.parentNode){noteSize(i);return;}mul=1;if(tool==='tx')txI=i;else{szI=i;if(tool==='hand'||tool==='er')tool='pen';}setTool(tool);state();}
 /* ---------- ô chữ: bộ gõ pinyin giống trình đọc sách ---------- */
+var EDN=null,gyEd=document.createElement('div');gyEd.id='gyEd';gyEd.setAttribute('contenteditable','true');gyEd.setAttribute('spellcheck','false');document.body.appendChild(gyEd);
 var pendW=null,ib='',icands=[],icp=0,shiftAlone=false,qOpen={d:false,s:false},imeMode='zh';
 try{imeMode=localStorage.getItem('gy-ime-mode')==='en'?'en':'zh';}catch(e){}
 var imeBox=document.createElement('div');imeBox.id='gyIme';imeBox.innerHTML='<div class="b"></div><div class="l"></div>';document.body.appendChild(imeBox);
 var imeM=document.createElement('div');imeM.id='gyImeM';document.body.appendChild(imeM);
 var imeLoading=false;
 function loadIme(cb){if(window.GYIME){if(cb)cb();return;}if(imeLoading)return;imeLoading=true;var sc=document.createElement('script');sc.src=GY_BASE+'gy-ime.js?v=1';sc.onload=function(){imeLoading=false;if(cb)cb();};sc.onerror=function(){imeLoading=false;};(document.head||DE).appendChild(sc);}
-setTimeout(function(){loadIme();},1500);
+setTimeout(function(){loadIme();loadPy(function(){allNotes().forEach(rubyNote);},true);},1500);
 var PUNC={',':'，','.':'。','?':'？','!':'！',';':'；',':':'：','\\':'、','(':'（',')':'）','[':'【',']':'】','<':'《','>':'》','~':'～','^':'……','_':'——','$':'￥'};
-function edT(){var w=pendW;return w?w.querySelector('.gyNt'):null;}
+function edT(){return EDN?gyEd:null;}
 function posMode(){var t=edT();if(!t||document.activeElement!==t){imeM.style.display='none';return;}var r=t.getBoundingClientRect();imeM.style.display='block';imeM.style.left=(r.left-4)+'px';imeM.style.top=Math.max(4,r.top-24)+'px';imeM.textContent=imeMode==='zh'?'中 (Shift đổi)':'英 (Shift đổi)';imeM.className=imeMode==='zh'?'':'en';}
 function insT(s){document.execCommand('insertText',false,s);posMode();}
 function updIme(){if(!ib||!window.GYIME){imeBox.style.display='none';icands=[];return;}icands=GYIME.cands(ib);imeBox.style.display='block';drawIme();}
@@ -345,13 +345,28 @@ function drawIme(){imeBox.firstChild.textContent=GYIME.seg(ib);var pg=icands.sli
  if(icands.length>9)h+='<span class="pg">'+(icp+1)+'/'+Math.ceil(icands.length/9)+'</span>';
  imeBox.lastChild.innerHTML=h||'<span style="color:#aaa;font-size:13px;padding:4px">Không có chữ phù hợp – Enter để giữ chữ cái</span>';
  var r=null;try{var sl=getSelection();if(sl.rangeCount){var rr=sl.getRangeAt(0).cloneRange();rr.collapse(false);r=rr.getClientRects()[0];}}catch(e){}
- var t=edT();if(!r&&t)r=t.getBoundingClientRect();if(!r)return;
+ var t=edT();if(!r||!r.height||(!r.left&&!r.top))r=t?t.getBoundingClientRect():null;if(!r)return;
  var top=(r.bottom||r.top+30)+8;imeBox.style.left=Math.max(8,Math.min(r.left,innerWidth-imeBox.offsetWidth-8))+'px';if(top+80>innerHeight)top=r.top-imeBox.offsetHeight-10;imeBox.style.top=top+'px';}
 imeBox.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();var c=e.target.closest('.c');if(c)pickC(+c.getAttribute('data-i'));},true);
 imeM.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();setMode(imeMode==='zh'?'en':'zh');},true);
 function setMode(m){imeMode=m;try{localStorage.setItem('gy-ime-mode',m);}catch(e){}if(ib){var b=ib;ib='';updIme();insT(b);}posMode();}
 function pickC(i){var c=icands[i];if(!c)return;GYIME.learn(c.w);insT(c.w);ib=ib.slice(c.used).replace(/^'+/,'');icp=0;updIme();}
-function doneNote(t,toHand){ib='';updIme();t.blur();imeM.style.display='none';escT=0;if(toHand){selNote(null);setTool('hand');}say('Đã xong ô chữ · bấm chỗ khác để gõ tiếp · Esc 2 lần về con trỏ');}
+function doneNote(){commitEd();escT=0;}
+function focusEd(){if(!EDN)return;try{gyEd.focus({preventScroll:true});}catch(_){gyEd.focus();}try{var r=document.createRange();r.selectNodeContents(gyEd);r.collapse(false);var sl=getSelection();sl.removeAllRanges();sl.addRange(r);}catch(_){}}
+function placeEd(){if(!EDN)return;var n=EDN.n,w=n.el,z=zOf(EDN.s),t=w.querySelector('.gyNt');w.classList.add('ed');w.classList.remove('py');
+ var r=t.getBoundingClientRect();gyEd.style.fontSize=(n.f*z)+'px';gyEd.style.color=n.c;gyEd.style.left=r.left+'px';gyEd.style.top=r.top+'px';gyEd.style.padding='0 '+(2*z)+'px';}
+function openEd(n,s,isNew){if(EDN)commitEd();selNote(null);loadIme();EDN={n:n,s:s,isNew:!!isNew};gyEd.textContent=n.t||'';gyEd.style.display='block';placeEd();ib='';updIme();focusEd();setTimeout(focusEd,0);posMode();}
+function commitEd(){if(!EDN)return;var E=EDN;EDN=null;ib='';updIme();imeM.style.display='none';
+ var txt=gyEd.innerText.replace(/\u00a0/g,' ').replace(/\n+$/,'');gyEd.style.display='none';gyEd.textContent='';try{gyEd.blur();}catch(_){}
+ var n=E.n,s=E.s,w=n.el;if(w)w.classList.remove('ed');
+ if(!txt.trim()){if(!E.isNew){var k=s.N.indexOf(n);if(k>=0){s.N.splice(k,1);act({k:'n-',n:n,s:s});}}if(w&&w.parentNode)w.parentNode.removeChild(w);return;}
+ n.t=txt;var t=w.querySelector('.gyNt');t.textContent=txt;if(NPY&&!PYD)loadPy(function(){allNotes().forEach(rubyNote);},true);rubyNote(n);
+ if(E.isNew){s.N.push(n);act({k:'n+',n:n,s:s});}}
+document.addEventListener('pointerdown',function(e){if(!EDN)return;if(e.target===gyEd||gyEd.contains(e.target)||imeBox.contains(e.target)||imeM.contains(e.target))return;commitEd();},true);
+gyEd.addEventListener('input',function(){posMode();});
+gyEd.addEventListener('paste',function(e){e.preventDefault();e.stopPropagation();var x=(e.clipboardData||window.clipboardData).getData('text/plain');if(x)insT(x);});
+addEventListener('scroll',function(){if(EDN){placeEd();posMode();if(ib)drawIme();}},true);
+addEventListener('resize',function(){if(EDN){placeEd();posMode();}});
 /* xử lý phím khi đang gõ ô chữ; syn=true khi Safari làm mất con trỏ và phím được chuyển vào đây */
 function imeKey(e,t,syn){
  if(e.isComposing||e.keyCode===229)return;
@@ -381,35 +396,30 @@ function imeKey(e,t,syn){
  }
  if(syn){if(k.length===1){e.preventDefault();insT(k);}else if(k==='Backspace'){e.preventDefault();document.execCommand('delete');}}
 }
-addEventListener('keyup',function(e){var t=e.target;if(!(t&&t.classList&&t.classList.contains('gyNt')))return;e.stopPropagation();if(e.key==='Shift'&&shiftAlone&&!ib)setMode(imeMode==='zh'?'en':'zh');shiftAlone=false;},true);
-function sweepEmpty(){var ae=document.activeElement;SURF.forEach(function(s){for(var i=s.N.length-1;i>=0;i--){var n=s.N[i];if(n.el&&!(n.t||'').trim()&&!n.el.contains(ae)){s.N.splice(i,1);U=U.filter(function(x){return x.n!==n;});RD=RD.filter(function(x){return x.n!==n;});if(n.el.parentNode)n.el.parentNode.removeChild(n.el);}}});}
-function editNote(w){var t=w.querySelector('.gyNt');if(!t)return;pendW=w;t.setAttribute('contenteditable','true');t.focus();
- try{var r=document.createRange();r.selectNodeContents(t);r.collapse(false);var sl=getSelection();sl.removeAllRanges();sl.addRange(r);}catch(_){}}
+addEventListener('keyup',function(e){if(!EDN)return;e.stopPropagation();if(e.key==='Shift'&&shiftAlone&&!ib)setMode(imeMode==='zh'?'en':'zh');shiftAlone=false;},true);
+function sweepEmpty(){SURF.forEach(function(s){for(var i=s.N.length-1;i>=0;i--){var n=s.N[i];if(n.el&&!(n.t||'').trim()&&!(EDN&&EDN.n===n)){s.N.splice(i,1);U=U.filter(function(x){return x.n!==n;});RD=RD.filter(function(x){return x.n!==n;});if(n.el.parentNode)n.el.parentNode.removeChild(n.el);}}});}
+function editNote(w){var x=null;SURF.forEach(function(s){s.N.forEach(function(n){if(n.el===w)x={n:n,s:s};});});if(x)openEd(x.n,x.s,false);}
 function mkNote(n,s){
  var w=document.createElement('div');w.className='gyNote';w.style.left=n.x+'px';w.style.top=n.y+'px';
  w.innerHTML='<div class="gyNh"><span class="x" title="Xóa ô chữ">✕</span></div><div class="gyNt" contenteditable="false" spellcheck="false"></div><div class="gyNr"></div>';
  var t=w.querySelector('.gyNt'),rb=w.querySelector('.gyNr');
  t.style.color=n.c;t.style.fontSize=n.f+'px';t.textContent=n.t;rb.style.color=n.c;rb.style.fontSize=n.f+'px';
  n.el=w;if(NPY)rubyNote(n);
- t.addEventListener('focus',function(){pendW=w;w.classList.add('ed');selNote({n:n,s:s});posMode();});
- t.addEventListener('input',function(){n.t=t.innerText;posMode();});
- t.addEventListener('paste',function(e){e.preventDefault();e.stopPropagation();var x=(e.clipboardData||window.clipboardData).getData('text/plain');if(x)insT(x);});
- t.addEventListener('blur',function(){if(pendW===w)pendW=null;ib='';updIme();imeM.style.display='none';w.classList.remove('ed');t.setAttribute('contenteditable','false');n.t=t.innerText;if(NPY)rubyNote(n);
-  if(!n.t.trim()){var k=s.N.indexOf(n);if(k>=0)s.N.splice(k,1);U=U.filter(function(x){return x.n!==n;});RD=RD.filter(function(x){return x.n!==n;});if(w.parentNode)w.parentNode.removeChild(w);}});
  w.querySelector('.x').addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();var k=s.N.indexOf(n);if(k>=0){s.N.splice(k,1);act({k:'n-',n:n,s:s});}if(w.parentNode)w.parentNode.removeChild(w);});
  /* bấm giữ & kéo = di chuyển ô chữ; nhấn đúp = sửa chữ */
  w.addEventListener('pointerdown',function(e){
   if(w.classList.contains('ed')||e.button>0||e.target.closest('.gyNh'))return;
-  e.preventDefault();e.stopPropagation();blurNote();selNote({n:n,s:s});
+  e.preventDefault();e.stopPropagation();blurNote();if(tool!=='tx')selNote({n:n,s:s});
   try{w.setPointerCapture(e.pointerId);}catch(_){}
   var a=pt(e,s),ox=n.x,oy=n.y,moved=false;
   function m(ev){var q=pt(ev,s);if(!moved&&Math.abs(q.x-a.x)+Math.abs(q.y-a.y)<3)return;moved=true;w.classList.add('drag');
    n.x=ox+q.x-a.x;n.y=oy+q.y-a.y;w.style.left=n.x+'px';w.style.top=n.y+'px';}
   function u(ev){w.removeEventListener('pointermove',m);w.removeEventListener('pointerup',u);w.removeEventListener('pointercancel',u);w.classList.remove('drag');
-   if(moved){var ax=n.ax,ay=n.ay,aa=n.a;n.a=null;anc(n,ev,s);if(!n.a){n.a=aa;n.ax=ax;n.ay=ay;}}}
+   if(moved){var ax=n.ax,ay=n.ay,aa=n.a;n.a=null;anc(n,ev,s);if(!n.a){n.a=aa;n.ax=ax;n.ay=ay;}}
+   else if(tool==='tx')openEd(n,s,false);}
   w.addEventListener('pointermove',m);w.addEventListener('pointerup',u);w.addEventListener('pointercancel',u);
  });
- w.addEventListener('dblclick',function(e){e.preventDefault();e.stopPropagation();if(!w.classList.contains('ed'))editNote(w);});
+ w.addEventListener('dblclick',function(e){e.preventDefault();e.stopPropagation();if(!w.classList.contains('ed'))openEd(n,s,false);});
  ['click','mousedown','mouseup','touchstart','touchend'].forEach(function(ev){w.addEventListener(ev,function(e){e.stopPropagation();});});
  return w;
 }
@@ -455,10 +465,10 @@ DE.addEventListener('mouseleave',function(){lzD.classList.remove('in');});
 window.gyLaserSet=setLz;window.gyLaserGet=function(){return lzOn;};
 
 /* ---------- pinyin cho chữ Thầy gõ ---------- */
-var NPY=false,PYD=null,pyQ=null;
-function loadPy(cb){
+var NPY=true,PYD=null,pyQ=null;
+function loadPy(cb,quiet){
  if(PYD){cb();return;}if(window.GY_PY){prepPy();cb();return;}if(pyQ){pyQ.push(cb);return;}
- pyQ=[cb];say('Đang tải từ điển pinyin…',4000);
+ pyQ=[cb];if(!quiet)say('Đang tải từ điển pinyin…',4000);
  var sc=document.createElement('script');sc.src=GY_BASE+'gy-pinyin.js?v=1';
  sc.onload=function(){prepPy();var q=pyQ;pyQ=null;q.forEach(function(f){f();});};
  sc.onerror=function(){pyQ=null;say('Không tải được từ điển pinyin – Thầy kiểm tra mạng rồi nhấn Y lại');};
@@ -563,7 +573,7 @@ bar.addEventListener('click',function(e){
  var b=e.target.closest('button');if(!b)return;
  if(b.hasAttribute('data-t')){setTool(b.getAttribute('data-t'));return;}
  if(b.hasAttribute('data-c')){var sws=[].slice.call(bar.querySelectorAll('.sw'));pickColor(sws.indexOf(b));
-  var ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('gyNt'))ae.style.color=penC;return;}
+  if(EDN){EDN.n.c=penC;gyEd.style.color=penC;var rb0=EDN.n.el&&EDN.n.el.querySelector('.gyNt');if(rb0)rb0.style.color=penC;var rr=EDN.n.el&&EDN.n.el.querySelector('.gyNr');if(rr)rr.style.color=penC;focusEd();}return;}
  if(b.hasAttribute('data-s')){setSize(+b.getAttribute('data-s'));return;}
  var a=b.getAttribute('data-a');
  if(a==='pres'){on?exit():enter();}else if(a==='undo')undo();else if(a==='redo')redo();else if(a==='clear')clearAll();
@@ -576,8 +586,7 @@ addEventListener('keydown',function(e){
  var fov=document.querySelector('.fov,.gy-ov');
  if(fov){var fr=fov.querySelector('iframe');try{if(fr)fr.contentWindow.focus();}catch(_){}return;}
  var t=e.target;
- if(t&&t.classList&&t.classList.contains('gyNt')){e.stopPropagation();imeKey(e,t,false);return;}
- if(pendW&&pendW.parentNode&&!(e.metaKey||e.ctrlKey)){var pt0=pendW.querySelector('.gyNt');editNote(pendW);e.stopPropagation();imeKey(e,pt0,true);return;}
+ if(EDN){e.stopPropagation();e.stopImmediatePropagation();var syn=document.activeElement!==gyEd;if(syn&&!(e.metaKey||e.ctrlKey))focusEd();imeKey(e,gyEd,syn);return;}
  if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))return;
  if(e.metaKey||e.ctrlKey||e.altKey)return;
  var k=e.key,kl=k.length===1?k.toLowerCase():k,done=true,c;
@@ -607,8 +616,8 @@ addEventListener('keydown',function(e){
   case '0':if(on)zoomBy(0);else done=false;break;
   case 'Escape':
    if(lzOn)toggleLz();
-   else if(selN){selNote(null);escT=Date.now();}
-   else if(tool!=='hand'){setTool('hand');state();escT=Date.now();}
+   else if(selN){selNote(null);escT=0;}
+   else if(tool!=='hand'){setTool('hand');state();escT=0;}
    else if(!canQuit())done=false;
    else if(Date.now()-escT<900){escT=0;quit();}
    else{escT=Date.now();say('Bấm Esc lần nữa để thoát trình chiếu',1200);}
