@@ -1,11 +1,11 @@
-/*! gy-tools.js v7.3 · Công cụ giáo viên Guangyu Hanyu (dùng chung mọi quyển: q1…, h1–h4…)
+/*! gy-tools.js v7.4 · Công cụ giáo viên Guangyu Hanyu (dùng chung mọi quyển: q1…, h1–h4…)
  * Bút · dạ quang · tẩy · ô chữ (có pinyin) · dấu ✓ ✗ · trình chiếu phóng to · tải PDF · mở bảng trắng.
  * Đặt tại https://guangyuhanyu.github.io/gy-tools.js (cùng gy-pinyin.js). Chỉ chạy trên máy đã bật ?gv=1.
  * Sửa công cụ = chỉ cần up lại file này.
  */
 (function(){
 var GY_BASE=((document.currentScript&&document.currentScript.src)||'https://guangyuhanyu.github.io/gy-tools.js').replace(/[?#].*$/,'').replace(/[^\/]*$/,'');
-var BOARD_URL='https://guangyuhanyu.github.io/bangtrang/';
+var BOARD_URL=window.GY_BOARD_URL||'https://guangyuhanyu.github.io/bangtrang/';
 var CSS=[
 '@media print{.gyPR.gyPV{overflow:visible!important}html.gyPrn .gyInkL.ext{left:0!important;width:100%!important}html.gyPrn .gyInkL.ext>svg,html.gyPrn .gyInkL.ext>.gyNotes{left:-600px!important;width:1px!important;height:1px!important;overflow:visible!important}html.gyPrn .gyPH>svg{width:1px!important;height:1px!important}html.gyPrn .gyNote{width:max-content}}',
 'html.gyT,html.gyT body{overflow-x:hidden}',
@@ -48,7 +48,14 @@ var CSS=[
 '#gyHelp h4{margin:0 0 8px;font:700 18px "Be Vietnam Pro",sans-serif;color:#2a5d76}#gyHelp table{border-collapse:collapse}#gyHelp td{padding:3px 10px;vertical-align:top}',
 '#gyHelp kbd{display:inline-block;min-width:22px;text-align:center;padding:1px 6px;border:1px solid #b8a98c;border-bottom-width:2px;border-radius:5px;background:#fff;font:600 13px/1.4 system-ui;margin:0 1px}',
 '#gyHelp .ft{margin-top:8px;font-size:13px;color:#6b5f55}',
-'#gyLz{position:fixed;left:0;top:0;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;z-index:2147483000;pointer-events:none;display:none;will-change:transform;background:radial-gradient(circle,#fff 0 16%,#ff5a4e 30%,rgba(229,57,53,.9) 46%,rgba(229,57,53,.35) 62%,rgba(229,57,53,0) 72%);box-shadow:0 0 18px 4px rgba(229,57,53,.35)}html.gyLzOn #gyLz.in{display:block}html.gyLzOn,html.gyLzOn *{cursor:none!important}',
+'#gyLz{position:fixed;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;z-index:2147483000;pointer-events:none;display:none;will-change:transform;background:rgba(92,196,208,.42);box-shadow:0 0 0 1.5px rgba(60,170,184,.55)}html.gyLzOn #gyLz.in{display:block}html.gyLzOn,html.gyLzOn *{cursor:none!important}',
+'#gyIme{position:fixed;z-index:2147482500;display:none;background:#fffdf8;border:1px solid #e0d6c3;border-radius:10px;box-shadow:0 6px 22px rgba(70,40,10,.16);padding:6px 8px;font:15px "Be Vietnam Pro",system-ui,sans-serif;max-width:92vw;color:#2b2b2b}',
+'#gyIme .b{color:#7a6f5d;font:14px "Helvetica Neue",Arial,sans-serif;padding:0 4px 4px;border-bottom:1px solid #efe7d8;margin-bottom:4px}',
+'#gyIme .l{display:flex;gap:2px;flex-wrap:nowrap}#gyIme .c{padding:3px 8px;border-radius:7px;cursor:pointer;white-space:nowrap;font-size:22px;font-family:"PingFang SC","Heiti SC","Noto Sans SC",sans-serif}',
+'#gyIme .c small{font-size:11px;color:#a59b88;margin-right:3px;font-family:Arial}#gyIme .c.f{background:#f7e3df;color:#CF3D2F}#gyIme .c:hover{background:#f3ecdf}#gyIme .pg{align-self:center;color:#b0a690;font-size:12px;padding:0 6px}',
+'#gyImeM{position:fixed;z-index:2147482500;display:none;font:12px "Be Vietnam Pro",system-ui,sans-serif;background:#CF3D2F;color:#fff;border-radius:6px;padding:1px 6px;cursor:pointer}#gyImeM.en{background:#7d7466}',
+'#gyWbF{position:fixed;top:0;left:0;width:100vw;height:100vh;border:0;margin:0;padding:0;z-index:2147482000;background:#FDFBF6}',
+
 '.gyNote.sel .gyNt,.gyNote.sel .gyNr{box-shadow:0 0 0 2px rgba(207,61,47,.75)!important;border-radius:4px}',
 '@media print{#gyBar,#gyTip,#gyHelp,#gyWm{display:none!important}html.gyT,html.gyT body{overflow:visible!important}.gyZoom{transform:none!important}.gyPR{zoom:var(--gyPZ,1);overflow:clip!important}html.gyT,html.gyT *{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{margin:10mm}}'
 ].join('\n');
@@ -71,7 +78,7 @@ var st=document.createElement('style');st.id='gy-tools-css';st.textContent=CSS;(
 DE.classList.add('gyT');
 
 var on=false,fsUsed=false,zAdj=1,tool='hand',penC='#e53935',hlC='#ffe14d',lzC='#e53935',szI=0,txI=1,mul=1,lzOn=false,selN=null;
-var PEN=[2,3.5,6],HLW=[12,18,26],FS=[18,26,36],STP=[20,28,38];
+var PEN=[2,3.5,6],HLW=[12,18,26],FS=[16,22,30],STP=[20,28,38];
 var COLORS=['#e53935','#1e88e5','#222222','#2eaa4a','#d81b60','#fb8c00'];
 var CN=['đỏ tươi','xanh dương','đen','xanh lá','hồng cánh sen','cam'],SN=['nhỏ','vừa','to'];
 var HLC=['#ffe14d','#ff9ec7','#8ef0c8','#8fd3ff','#ffc29a','#c9a7ff'],HN=['vàng chanh','hồng phấn','xanh bạc hà','xanh da trời','cam đào','tím oải hương'];
@@ -130,14 +137,14 @@ var own=DECK?'<b>Phím của bài giảng (giữ như cũ):</b> <kbd>←</kbd><k
 help.innerHTML='<div class="bx"><h4>Phím tắt của Thầy <span style="font:500 12px system-ui;color:#8a7b6b">· gy-tools v6</span></h4><table>'+
 '<tr><td><kbd>V</kbd></td><td>Con trỏ (bấm, làm bài)</td><td><kbd>B</kbd></td><td>Bút</td></tr>'+
 '<tr><td><kbd>H</kbd></td><td>Bút dạ quang</td><td><kbd>E</kbd></td><td>Tẩy (chạm vào nét để xóa)</td></tr>'+
-'<tr><td><kbd>G</kbd></td><td>Ô chữ (bấm chỗ muốn gõ)</td><td><kbd>D</kbd> / <kbd>S</kbd></td><td>Đóng dấu ✓ đúng / ✗ sai</td></tr>'+
+'<tr><td><kbd>G</kbd></td><td>Ô chữ: bấm chỗ muốn gõ, gõ pinyin không dấu (nihao → 你好), Space / 1–9 chọn chữ, Shift đổi 中/英</td><td><kbd>D</kbd> / <kbd>S</kbd></td><td>Đóng dấu ✓ đúng / ✗ sai</td></tr>'+
 '<tr><td><kbd>1</kbd>–<kbd>6</kbd></td><td>Màu bút: đỏ · xanh dương · đen · xanh lá · hồng · cam (dạ quang: vàng · hồng · bạc hà · da trời · đào · tím)</td><td><kbd>7</kbd><kbd>8</kbd><kbd>9</kbd> <kbd>[</kbd><kbd>]</kbd></td><td>Cỡ nhỏ · vừa · to · nhỏ dần / to dần</td></tr>'+
-'<tr><td><kbd>R</kbd></td><td>Bút laze: chấm đỏ lớn, bật/tắt (vẫn viết, gõ được như thường)</td><td><kbd>Y</kbd></td><td>Pinyin trên chữ Hán Thầy gõ</td></tr>'+
-'<tr><td><kbd>W</kbd></td><td>Mở bảng trắng (tab mới)</td><td></td><td></td></tr>'+
+'<tr><td><kbd>R</kbd></td><td>Bút laze: chấm tròn xanh trong suốt, bật/tắt (vẫn viết, gõ được như thường)</td><td><kbd>Y</kbd></td><td>Pinyin trên chữ Hán Thầy gõ</td></tr>'+
+'<tr><td><kbd>W</kbd></td><td>Mở bảng nháp đè lên bài (✕ hoặc Esc để đóng, W mở lại)</td><td></td><td></td></tr>'+
 '<tr><td><kbd>Z</kbd> · <kbd>⇧</kbd><kbd>Z</kbd></td><td>Hoàn tác · làm lại</td><td><kbd>X</kbd> ×2</td><td>Xóa hết ghi chú '+(DECK?'của slide đang xem':'của bài')+'</td></tr>'+
 '<tr><td><kbd>K</kbd></td><td>Tải bài kèm ghi chú (lưu PDF)</td><td><kbd>M</kbd></td><td>Hiện / ẩn thanh công cụ</td></tr>'+
-'<tr><td><kbd>Esc</kbd></td><td>Về con trỏ'+(DECK?'':' · nhấn lần nữa: thôi chiếu')+'</td><td><kbd>?</kbd></td><td>Mở / đóng bảng này</td></tr>'+
-'</table><div class="ft">'+own+'<br>Đang gõ trong ô chữ: nhấn <kbd>Esc</kbd> để ra khỏi ô rồi mới dùng phím tắt. Ghi chú giữ đến khi đóng hoặc tải lại trang.</div></div>';
+'<tr><td><kbd>Esc</kbd></td><td>Về con trỏ · bấm Esc 2 lần liền: thôi chiếu</td><td><kbd>?</kbd></td><td>Mở / đóng bảng này</td></tr>'+
+'</table><div class="ft">'+own+'<br>Đang gõ trong ô chữ: <kbd>Enter</kbd> hoặc <kbd>Esc</kbd> là xong ô chữ, <kbd>Shift</kbd>+<kbd>Enter</kbd> xuống dòng. Ghi chú giữ đến khi đóng hoặc tải lại trang.</div></div>';
 document.body.appendChild(help);help.addEventListener('click',function(){help.classList.remove('show');});
 var bar=document.createElement('div');bar.id='gyBar';
 var h='';
@@ -176,6 +183,8 @@ function exit(){
  if(document.fullscreenElement||document.webkitFullscreenElement){try{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
  var fix=function(){window.scrollTo(0,Math.max(0,rootTop()+anchor));};fix();setTimeout(fix,250);
 }
+var escT=0;
+function canQuit(){if(on)return true;try{if(IFR&&PDOC&&PDOC.querySelector('.fov,.gy-ov'))return true;}catch(e){}return false;}
 function quit(){
  if(IFR&&PDOC){var fv=PDOC.querySelector('.fov,.gy-ov');if(fv){on=false;try{window.parent.focus();}catch(e){}var cb=fv.querySelector('.gy-ovx')||fv.querySelector('button');if(cb)cb.click();return true;}}
  if(on){exit();return true;}
@@ -188,6 +197,7 @@ document.addEventListener('fullscreenchange',onFs);document.addEventListener('we
 /* ---------- vẽ ---------- */
 function setTool(t){
  if(t==='lz'){toggleLz();return;}
+ if(t!=='tx'){pendW=null;try{sweepEmpty();}catch(_){}}
  tool=t;
  DE.className=DE.className.replace(/\bgyT-\w+\b/g,'').replace(/\bgyAct\b/g,'').trim();
  if(t!=='hand'&&t!=='lz'){DE.classList.add('gyAct');ensure();}if(t!=='hand')DE.classList.add('gyT-'+t);
@@ -258,7 +268,7 @@ function bindInk(s){
   if(tool==='hand')return;
   if(tool==='tx'){
    if(e.target.closest('.gyNote'))return;
-   e.preventDefault();blurNote();selNote(null);
+   e.preventDefault();blurNote();selNote(null);sweepEmpty();loadIme();
    var fs=FS[txI]*mul/zOf(s),q=pt(e,s),n={x:q.x,y:q.y-fs*0.7,c:penC,f:fs,t:''};anc(n,e,s);
    s.N.push(n);act({k:'n+',n:n,s:s});var el=mkNote(n,s);s.NT.appendChild(el);editNote(el);setTimeout(function(){editNote(el);},0);
    var fx=function(){L.removeEventListener('pointerup',fx);if(document.activeElement!==el.querySelector('.gyNt'))editNote(el);};L.addEventListener('pointerup',fx);return;
@@ -317,7 +327,63 @@ function erase(Q,s){var q;
 function selNote(x){if(selN&&selN.n.el)selN.n.el.classList.remove('sel');selN=x;if(x&&x.n.el)x.n.el.classList.add('sel');}
 function noteSize(i){var n=selN.n,s=selN.s,f=FS[i]/zOf(s);n.f=f;var w=n.el;if(!w)return;var t=w.querySelector('.gyNt'),rb=w.querySelector('.gyNr');t.style.fontSize=f+'px';rb.style.fontSize=f+'px';if(NPY)rubyNote(n);say('Cỡ ô chữ: '+SN[i]);}
 function setSize(i){if(selN&&selN.n.el&&selN.n.el.parentNode){noteSize(i);return;}mul=1;if(tool==='tx')txI=i;else{szI=i;if(tool==='hand'||tool==='er')tool='pen';}setTool(tool);state();}
-function editNote(w){var t=w.querySelector('.gyNt');if(!t)return;t.setAttribute('contenteditable','true');t.focus();
+/* ---------- ô chữ: bộ gõ pinyin giống trình đọc sách ---------- */
+var pendW=null,ib='',icands=[],icp=0,shiftAlone=false,qOpen={d:false,s:false},imeMode='zh';
+try{imeMode=localStorage.getItem('gy-ime-mode')==='en'?'en':'zh';}catch(e){}
+var imeBox=document.createElement('div');imeBox.id='gyIme';imeBox.innerHTML='<div class="b"></div><div class="l"></div>';document.body.appendChild(imeBox);
+var imeM=document.createElement('div');imeM.id='gyImeM';document.body.appendChild(imeM);
+var imeLoading=false;
+function loadIme(cb){if(window.GYIME){if(cb)cb();return;}if(imeLoading)return;imeLoading=true;var sc=document.createElement('script');sc.src=GY_BASE+'gy-ime.js?v=1';sc.onload=function(){imeLoading=false;if(cb)cb();};sc.onerror=function(){imeLoading=false;};(document.head||DE).appendChild(sc);}
+setTimeout(function(){loadIme();},1500);
+var PUNC={',':'，','.':'。','?':'？','!':'！',';':'；',':':'：','\\':'、','(':'（',')':'）','[':'【',']':'】','<':'《','>':'》','~':'～','^':'……','_':'——','$':'￥'};
+function edT(){var w=pendW;return w?w.querySelector('.gyNt'):null;}
+function posMode(){var t=edT();if(!t||document.activeElement!==t){imeM.style.display='none';return;}var r=t.getBoundingClientRect();imeM.style.display='block';imeM.style.left=(r.left-4)+'px';imeM.style.top=Math.max(4,r.top-24)+'px';imeM.textContent=imeMode==='zh'?'中 (Shift đổi)':'英 (Shift đổi)';imeM.className=imeMode==='zh'?'':'en';}
+function insT(s){document.execCommand('insertText',false,s);posMode();}
+function updIme(){if(!ib||!window.GYIME){imeBox.style.display='none';icands=[];return;}icands=GYIME.cands(ib);imeBox.style.display='block';drawIme();}
+function drawIme(){imeBox.firstChild.textContent=GYIME.seg(ib);var pg=icands.slice(icp*9,icp*9+9),h='';
+ pg.forEach(function(c,i){h+='<span class="c'+(i===0?' f':'')+'" data-i="'+(icp*9+i)+'"><small>'+(i+1)+'</small>'+c.w+'</span>';});
+ if(icands.length>9)h+='<span class="pg">'+(icp+1)+'/'+Math.ceil(icands.length/9)+'</span>';
+ imeBox.lastChild.innerHTML=h||'<span style="color:#aaa;font-size:13px;padding:4px">Không có chữ phù hợp – Enter để giữ chữ cái</span>';
+ var r=null;try{var sl=getSelection();if(sl.rangeCount){var rr=sl.getRangeAt(0).cloneRange();rr.collapse(false);r=rr.getClientRects()[0];}}catch(e){}
+ var t=edT();if(!r&&t)r=t.getBoundingClientRect();if(!r)return;
+ var top=(r.bottom||r.top+30)+8;imeBox.style.left=Math.max(8,Math.min(r.left,innerWidth-imeBox.offsetWidth-8))+'px';if(top+80>innerHeight)top=r.top-imeBox.offsetHeight-10;imeBox.style.top=top+'px';}
+imeBox.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();var c=e.target.closest('.c');if(c)pickC(+c.getAttribute('data-i'));},true);
+imeM.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();setMode(imeMode==='zh'?'en':'zh');},true);
+function setMode(m){imeMode=m;try{localStorage.setItem('gy-ime-mode',m);}catch(e){}if(ib){var b=ib;ib='';updIme();insT(b);}posMode();}
+function pickC(i){var c=icands[i];if(!c)return;GYIME.learn(c.w);insT(c.w);ib=ib.slice(c.used).replace(/^'+/,'');icp=0;updIme();}
+function doneNote(t,toHand){ib='';updIme();t.blur();imeM.style.display='none';escT=0;if(toHand){selNote(null);setTool('hand');}say('Đã xong ô chữ · bấm chỗ khác để gõ tiếp · Esc 2 lần về con trỏ');}
+/* xử lý phím khi đang gõ ô chữ; syn=true khi Safari làm mất con trỏ và phím được chuyển vào đây */
+function imeKey(e,t,syn){
+ if(e.isComposing||e.keyCode===229)return;
+ var k=e.key,mod=e.metaKey||e.ctrlKey;
+ if(k==='Shift'){shiftAlone=true;return;}shiftAlone=false;
+ if(mod&&k==='Enter'){e.preventDefault();doneNote(t);return;}
+ if(mod||e.altKey)return;
+ if(k==='Escape'){e.preventDefault();if(ib){ib='';updIme();}else doneNote(t);return;}
+ if(k==='Enter'&&!ib){e.preventDefault();if(e.shiftKey){document.execCommand('insertLineBreak');posMode();}else doneNote(t);return;}
+ var zh=imeMode==='zh'&&window.GYIME;
+ if(imeMode==='zh'&&!window.GYIME)loadIme();
+ if(zh&&ib){
+  if(/^[a-zA-Z']$/.test(k)&&!(e.shiftKey&&/[A-Z]/.test(k))){e.preventDefault();ib+=k.toLowerCase();icp=0;updIme();return;}
+  if(k==='Backspace'){e.preventDefault();ib=ib.slice(0,-1);icp=0;updIme();return;}
+  if(k===' '){e.preventDefault();pickC(icp*9);return;}
+  if(/^[1-9]$/.test(k)){e.preventDefault();pickC(icp*9+(+k-1));return;}
+  if(k==='Enter'){e.preventDefault();var b=ib;ib='';updIme();insT(b);return;}
+  if(k==='='||k==='.'||k==='PageDown'||k==='ArrowDown'){e.preventDefault();if((icp+1)*9<icands.length){icp++;drawIme();}return;}
+  if(k==='-'||k===','||k==='PageUp'||k==='ArrowUp'){e.preventDefault();if(icp>0){icp--;drawIme();}return;}
+  if(k.length===1){e.preventDefault();return;}
+  return;}
+ if(zh){
+  if(/^[a-z]$/.test(k)){e.preventDefault();ib=k;icp=0;updIme();return;}
+  if(k==='"'){e.preventDefault();insT(qOpen.d?'”':'“');qOpen.d=!qOpen.d;return;}
+  if(k==="'"){e.preventDefault();insT(qOpen.s?'’':'‘');qOpen.s=!qOpen.s;return;}
+  if(PUNC[k]){e.preventDefault();insT(PUNC[k]);return;}
+ }
+ if(syn){if(k.length===1){e.preventDefault();insT(k);}else if(k==='Backspace'){e.preventDefault();document.execCommand('delete');}}
+}
+addEventListener('keyup',function(e){var t=e.target;if(!(t&&t.classList&&t.classList.contains('gyNt')))return;e.stopPropagation();if(e.key==='Shift'&&shiftAlone&&!ib)setMode(imeMode==='zh'?'en':'zh');shiftAlone=false;},true);
+function sweepEmpty(){var ae=document.activeElement;SURF.forEach(function(s){for(var i=s.N.length-1;i>=0;i--){var n=s.N[i];if(n.el&&!(n.t||'').trim()&&!n.el.contains(ae)){s.N.splice(i,1);U=U.filter(function(x){return x.n!==n;});RD=RD.filter(function(x){return x.n!==n;});if(n.el.parentNode)n.el.parentNode.removeChild(n.el);}}});}
+function editNote(w){var t=w.querySelector('.gyNt');if(!t)return;pendW=w;t.setAttribute('contenteditable','true');t.focus();
  try{var r=document.createRange();r.selectNodeContents(t);r.collapse(false);var sl=getSelection();sl.removeAllRanges();sl.addRange(r);}catch(_){}}
 function mkNote(n,s){
  var w=document.createElement('div');w.className='gyNote';w.style.left=n.x+'px';w.style.top=n.y+'px';
@@ -325,9 +391,10 @@ function mkNote(n,s){
  var t=w.querySelector('.gyNt'),rb=w.querySelector('.gyNr');
  t.style.color=n.c;t.style.fontSize=n.f+'px';t.textContent=n.t;rb.style.color=n.c;rb.style.fontSize=n.f+'px';
  n.el=w;if(NPY)rubyNote(n);
- t.addEventListener('focus',function(){w.classList.add('ed');selNote({n:n,s:s});});
- t.addEventListener('input',function(){n.t=t.innerText;});
- t.addEventListener('blur',function(){w.classList.remove('ed');t.setAttribute('contenteditable','false');n.t=t.innerText;if(NPY)rubyNote(n);
+ t.addEventListener('focus',function(){pendW=w;w.classList.add('ed');selNote({n:n,s:s});posMode();});
+ t.addEventListener('input',function(){n.t=t.innerText;posMode();});
+ t.addEventListener('paste',function(e){e.preventDefault();e.stopPropagation();var x=(e.clipboardData||window.clipboardData).getData('text/plain');if(x)insT(x);});
+ t.addEventListener('blur',function(){if(pendW===w)pendW=null;ib='';updIme();imeM.style.display='none';w.classList.remove('ed');t.setAttribute('contenteditable','false');n.t=t.innerText;if(NPY)rubyNote(n);
   if(!n.t.trim()){var k=s.N.indexOf(n);if(k>=0)s.N.splice(k,1);U=U.filter(function(x){return x.n!==n;});RD=RD.filter(function(x){return x.n!==n;});if(w.parentNode)w.parentNode.removeChild(w);}});
  w.querySelector('.x').addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();var k=s.N.indexOf(n);if(k>=0){s.N.splice(k,1);act({k:'n-',n:n,s:s});}if(w.parentNode)w.parentNode.removeChild(w);});
  /* bấm giữ & kéo = di chuyển ô chữ; nhấn đúp = sửa chữ */
@@ -367,16 +434,25 @@ function togglePy(){var b=pyBtn();if(b){b.click();return true;}return false;}
 function pickColor(i){if(i<0)return;if(tool==='hl')hlC=HLC[i];else if(tool==='lz')lzC=COLORS[i];else{penC=COLORS[i];if(!/^(pen|tx)$/.test(tool))tool='pen';}setTool(tool);}
 function zoomBy(f){zAdj=f===0?1:Math.max(0.5,Math.min(2,zAdj*f));fit();say('Cỡ chiếu '+Math.round(zAdj*100)+'%');}
 function sizeBy(f){mul=Math.max(0.4,Math.min(3,mul*f));if(tool==='hand'||tool==='er')setTool('pen');state();}
-function openBoard(){var w=null;try{w=window.open(BOARD_URL,'gy-bangtrang');}catch(e){}if(w){try{w.focus();}catch(e){}}else say('Safari chặn mở tab – Thầy cho phép cửa sổ bật lên giúp em');}
+/* W: mở bảng nháp đè lên bài (giống trình đọc sách) – nút ✕ / Esc để đóng, W mở lại đúng bảng vừa đóng */
+function lzToBoard(f){if(!lzOn)return;setLz(false,true);var go=function(){try{f.contentWindow.gyLaserSet(true,true);}catch(e){}};try{if(f.contentWindow.gyLaserSet){go();return;}}catch(e){}f.addEventListener('load',function(){setTimeout(go,60);},{once:true});}
+function openBoard(){var f=document.getElementById('gyWbF');
+ if(f){if(f.style.display==='none'){f.style.display='block';lzToBoard(f);try{f.contentWindow.focus();}catch(e){}}else closeBoardF();return;}
+ blurNote();f=document.createElement('iframe');f.id='gyWbF';f.src=BOARD_URL+'?overlay=1';f.setAttribute('allow','clipboard-read; clipboard-write; fullscreen');
+ document.body.appendChild(f);lzToBoard(f);f.addEventListener('load',function(){try{f.contentWindow.focus();}catch(e){}});}
+function closeBoardF(){var f=document.getElementById('gyWbF');if(!f)return;var lz=false;try{lz=f.contentWindow.gyLaserGet();f.contentWindow.gyLaserSet(false,true);}catch(e){}f.style.display='none';if(lz)setLz(true,true);try{window.focus();}catch(e){}}
+addEventListener('message',function(e){if(e.data==='gy-wb-close')closeBoardF();});
 
 /* ---------- bút laze: chấm đỏ lớn kiểu Canva, luôn hiện tới khi tắt (R / Esc); vẫn dùng mọi công cụ khác ---------- */
 var lzD=document.createElement('div');lzD.id='gyLz';document.body.appendChild(lzD);
 var lzX0=-99,lzY0=-99,lzRaf=0;
 function lzPlace(){lzRaf=0;lzD.style.transform='translate('+lzX0+'px,'+lzY0+'px)';}
-function toggleLz(){lzOn=!lzOn;DE.classList.toggle('gyLzOn',lzOn);if(lzOn){lzD.classList.toggle('in',lzX0>-50);lzPlace();say('Bút laze · bấm R để tắt');}else say('Tắt bút laze');var lb=bar.querySelector('[data-t="lz"]');if(lb)lb.classList.toggle('on',lzOn);}
+function toggleLz(){setLz(!lzOn);}
+function setLz(v,quiet){lzOn=!!v;DE.classList.toggle('gyLzOn',lzOn);if(lzOn){lzD.classList.toggle('in',lzX0>-50);lzPlace();if(!quiet)say('Bút laze · bấm R để tắt');}else{lzD.classList.remove('in');if(!quiet)say('Tắt bút laze');}var lb=bar.querySelector('[data-t="lz"]');if(lb)lb.classList.toggle('on',lzOn);}
 addEventListener('pointermove',function(e){lzX0=e.clientX;lzY0=e.clientY;if(!lzOn)return;lzD.classList.add('in');if(!lzRaf)lzRaf=requestAnimationFrame(lzPlace);},true);
 addEventListener('pointerdown',function(e){lzX0=e.clientX;lzY0=e.clientY;if(lzOn){lzD.classList.add('in');lzPlace();}},true);
 DE.addEventListener('mouseleave',function(){lzD.classList.remove('in');});
+window.gyLaserSet=setLz;window.gyLaserGet=function(){return lzOn;};
 
 /* ---------- pinyin cho chữ Thầy gõ ---------- */
 var NPY=false,PYD=null,pyQ=null;
@@ -496,10 +572,12 @@ bar.addEventListener('click',function(e){
 });
 bar.addEventListener('pointerdown',function(e){if(e.target.closest('.sw'))e.preventDefault();});
 addEventListener('keydown',function(e){
+ var wbf=document.getElementById('gyWbF');if(wbf&&wbf.style.display!=='none'){try{wbf.contentWindow.focus();}catch(_){}return;}
  var fov=document.querySelector('.fov,.gy-ov');
  if(fov){var fr=fov.querySelector('iframe');try{if(fr)fr.contentWindow.focus();}catch(_){}return;}
  var t=e.target;
- if(t&&t.classList&&t.classList.contains('gyNt')){e.stopPropagation();if(e.isComposing||e.keyCode===229)return;if(e.key==='Escape'||(e.key==='Enter'&&!e.shiftKey)){e.preventDefault();t.blur();if(e.key==='Escape'){selNote(null);setTool('hand');}say(e.key==='Escape'?'Đã xong ô chữ · bấm kéo để dời · nhấn đúp để sửa':'Đã xong · bấm chỗ khác để gõ ô chữ mới');}return;}
+ if(t&&t.classList&&t.classList.contains('gyNt')){e.stopPropagation();imeKey(e,t,false);return;}
+ if(pendW&&pendW.parentNode&&!(e.metaKey||e.ctrlKey)){var pt0=pendW.querySelector('.gyNt');editNote(pendW);e.stopPropagation();imeKey(e,pt0,true);return;}
  if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))return;
  if(e.metaKey||e.ctrlKey||e.altKey)return;
  var k=e.key,kl=k.length===1?k.toLowerCase():k,done=true,c;
@@ -529,9 +607,11 @@ addEventListener('keydown',function(e){
   case '0':if(on)zoomBy(0);else done=false;break;
   case 'Escape':
    if(lzOn)toggleLz();
-   else if(selN){selNote(null);}
-   else if(tool!=='hand'){setTool('hand');state();}
-   else if(!quit())done=false;
+   else if(selN){selNote(null);escT=Date.now();}
+   else if(tool!=='hand'){setTool('hand');state();escT=Date.now();}
+   else if(!canQuit())done=false;
+   else if(Date.now()-escT<900){escT=0;quit();}
+   else{escT=Date.now();say('Bấm Esc lần nữa để thoát trình chiếu',1200);}
    break;
   default:
    if(/^[1-6]$/.test(k)){pickColor(+k-1);state();}
