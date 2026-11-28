@@ -1,0 +1,2 @@
+<style id="gy-cho">html.gy-cho body{visibility:hidden}html.gy-cho{background:#F9F3E3 url(/favicon-192.png) center 42%/72px no-repeat;min-height:100%}</style>
+<script>(function(){var h=document.documentElement;h.classList.add('gy-cho');function mo(){h.classList.remove('gy-cho')}document.addEventListener('DOMContentLoaded',function(){requestAnimationFrame(function(){requestAnimationFrame(mo)})});setTimeout(mo,8000)})();</script>
